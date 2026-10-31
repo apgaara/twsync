@@ -10,6 +10,7 @@ import threading
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import yt_dlp
 import syncedlyrics
+from syncedlyrics.providers import NetEase
 
 PORT = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 7860))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +20,44 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 LYRICS_CACHE = {}
 DOWNLOAD_LOCK = threading.Lock()
 ACTIVE_DOWNLOADS = set()
+NETEASE_INSTANCE = NetEase()
+
+def fetch_smart_netease_lyrics(query):
+    clean_q = clean_title_for_lyrics(query)
+    words = clean_q.split()
+    if not words:
+        return None
+    
+    # Try query permutations (Title first, Artist second, etc.)
+    permutations = [clean_q]
+    if len(words) >= 3:
+        permutations.append(' '.join(words[2:] + words[:2]))
+        permutations.append(' '.join(words[2:]))
+        permutations.append(' '.join(words[1:] + words[:1]))
+        permutations.append(' '.join(words[1:]))
+
+    for p in permutations:
+        try:
+            params = {'limit': 15, 'type': 1, 'offset': 0, 's': p}
+            res = NETEASE_INSTANCE.session.get(NETEASE_INSTANCE.API_ENDPOINT_METADATA, params=params).json()
+            songs = res.get('result', {}).get('songs', [])
+            
+            for s in songs:
+                s_name = s.get('name', '').lower()
+                s_artists = ' '.join(a.get('name', '').lower() for a in s.get('artists', []))
+                
+                # Check if significant words in clean_q match this song
+                q_words = [w.lower() for w in words if len(w) > 2]
+                all_match = all(w in f'{s_name} {s_artists}' for w in q_words)
+                
+                if all_match:
+                    lrc_obj = NETEASE_INSTANCE.get_lrc_by_id(s.get('id'))
+                    if lrc_obj and lrc_obj.synced:
+                        return lrc_obj.synced
+        except Exception:
+            continue
+            
+    return None
 
 def clean_title_for_lyrics(title):
     cleaned = re.sub(r'[\(\[\{][^\)\]\}]*(?:official|video|audio|lyric|mv|remastered|4k|hd|live|ft\.|feat\.|clip|visualizer)[^\)\]\}]*[\)\]\}]', '', title, flags=re.IGNORECASE)
@@ -180,13 +219,20 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
             return
 
         lrc = None
-        # Try clean query first
+        # 1. Try smart NetEase matcher with title/artist permutations
         try:
-            lrc = syncedlyrics.search(clean_q, synced_only=True)
+            lrc = fetch_smart_netease_lyrics(clean_q)
         except Exception as e:
-            print(f"[Lyrics Error for '{clean_q}']: {e}")
+            print(f"[Smart NetEase Error for '{clean_q}']: {e}")
 
-        # If not found and clean_q differs significantly from raw query, try raw query
+        # 2. Try syncedlyrics multi-provider fallback
+        if not lrc:
+            try:
+                lrc = syncedlyrics.search(clean_q, synced_only=True)
+            except Exception as e:
+                print(f"[Lyrics Error for '{clean_q}']: {e}")
+
+        # 3. If still not found, try raw query
         if not lrc and clean_q != q:
             try:
                 lrc = syncedlyrics.search(q, synced_only=True)
