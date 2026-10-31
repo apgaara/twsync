@@ -12,7 +12,7 @@ import yt_dlp
 import syncedlyrics
 from syncedlyrics.providers import NetEase
 
-PORT = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 7860))
+PORT = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 10000))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_DIR = os.path.join(BASE_DIR, "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)

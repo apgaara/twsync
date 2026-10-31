@@ -19,7 +19,7 @@ COPY . .
 # Ensure cache directory is writable by user 1000
 RUN chmod -R 777 /app/cache
 
-ENV PORT=7860
-EXPOSE 7860
+ENV PORT=10000
+EXPOSE 10000
 
 CMD ["python3", "server.py"]
