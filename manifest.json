@@ -1,7 +1,7 @@
 {
-  "name": "TWS LiveSync PRO",
-  "short_name": "TWS LiveSync",
-  "description": "Smart synchronized lyric player for touchscreen TWS cases",
+  "name": "TWSync by Gara",
+  "short_name": "TWSync",
+  "description": "Smart synchronized lyric player for touchscreen TWS cases by Gara",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1116",

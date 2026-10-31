@@ -1,12 +1,12 @@
 ---
-title: TWS Smart Lyric Player PRO
+title: TWSync • by Gara
 emoji: 🎧
-colorFrom: green
+colorFrom: indigo
 colorTo: blue
 sdk: docker
 app_port: 7860
 ---
 
-# TWS Smart Lyric Player PRO
-Full-featured Bluetooth AVRCP lyric sync engine for touchscreen TWS cases.
+# TWSync • by Gara
+Smart synchronized lyric player engineered for touchscreen TWS cases (JL7012 / Outro Blast X19 & compatible).
 Mendukung pemutaran audio di latar belakang (layar HP mati / sleep) dan sinkronisasi lirik otomatis ke layar case TWS.
