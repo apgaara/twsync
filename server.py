@@ -18,6 +18,7 @@ PORT = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 10000))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_DIR = os.environ.get("CACHE_DIR", os.path.join(tempfile.gettempdir(), "tws_cache"))
 os.makedirs(CACHE_DIR, exist_ok=True)
+COOKIES_FILE = os.path.join(BASE_DIR, "cookies.txt")
 
 INVIDIOUS_INSTANCES = [
     'https://yt.chocolatemoo53.com',
@@ -334,12 +335,9 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                         'source_address': '0.0.0.0',
                         'js_runtimes': {'node': {}},
                         'remote_components': ['ejs:github'],
-                        'extractor_args': {
-                            'youtube': {
-                                'player_client': ['android', 'web'],
-                            }
-                        }
                     }
+                    if os.path.exists(COOKIES_FILE):
+                        ydl_opts['cookiefile'] = COOKIES_FILE
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([f"https://www.youtube.com/watch?v={vid_id}"])
                 except Exception as e:
