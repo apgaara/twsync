@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tws-player-v9-meta-fix';
+const CACHE_NAME = 'tws-player-v12-offset-direct';
 const ASSETS = [
   '/',
   '/index.html',

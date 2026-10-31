@@ -706,9 +706,9 @@
 
       <div class="tune-subgroup">
         <span>Offset:</span>
-        <button class="mini-tune-btn" onclick="alterOffsetSec(-0.3)">-</button>
-        <span id="ui-offset-tag" class="tune-value-tag">0.0s</span>
-        <button class="mini-tune-btn" onclick="alterOffsetSec(0.3)">+</button>
+        <button class="mini-tune-btn" onclick="alterOffsetSec(-0.5)" title="Mundur 0.5s">-</button>
+        <span id="ui-offset-tag" class="tune-value-tag" onclick="promptCustomOffset()" title="Ketuk untuk ketik offset" style="cursor:pointer; text-decoration:underline dotted;">0.0s</span>
+        <button class="mini-tune-btn" onclick="alterOffsetSec(0.5)" title="Maju 0.5s">+</button>
       </div>
 
       <div class="tools-subgroup">
@@ -787,6 +787,14 @@
     function alterOffsetSec(diff) {
       syncOffsetSeconds = Math.round((syncOffsetSeconds + diff) * 10) / 10;
       document.getElementById('ui-offset-tag').innerText = (syncOffsetSeconds > 0 ? '+' : '') + syncOffsetSeconds + 's';
+    }
+
+    function promptCustomOffset() {
+      const val = prompt("Masukkan offset lirik (contoh: -5.5 atau 2.0 detik):", syncOffsetSeconds);
+      if (val !== null && !isNaN(parseFloat(val))) {
+        syncOffsetSeconds = Math.round(parseFloat(val) * 10) / 10;
+        document.getElementById('ui-offset-tag').innerText = (syncOffsetSeconds > 0 ? '+' : '') + syncOffsetSeconds + 's';
+      }
     }
 
     function clearLyricState() {
