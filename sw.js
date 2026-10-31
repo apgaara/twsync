@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tws-livesync-v13';
+const CACHE_NAME = 'tws-livesync-v14-tws-logo';
 const ASSETS = [
   '/',
   '/index.html',
