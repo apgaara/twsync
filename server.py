@@ -193,6 +193,8 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
             self.handle_api_audio(params)
         elif path == "/api/cache_status":
             self.handle_cache_status(params)
+        elif path == "/api/version":
+            self.send_json({"version": "1.3-pot-provider", "status": "ok", "has_cookies": os.path.exists(COOKIES_FILE)})
         else:
             # Serve static files
             super().do_GET()
