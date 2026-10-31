@@ -215,7 +215,12 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
             'extract_flat': 'in_playlist',
             'skip_download': True,
             'quiet': True,
-            'noplaylist': True
+            'noplaylist': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android'],
+                }
+            }
         }
 
         results = []
@@ -328,13 +333,16 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
             if needs_dl:
                 try:
                     ydl_opts = {
-                        'format': 'bestaudio/best',
+                        'format': 'bestaudio/18/best',
                         'outtmpl': os.path.join(CACHE_DIR, f"{vid_id}.%(ext)s"),
                         'quiet': True,
                         'noplaylist': True,
                         'source_address': '0.0.0.0',
-                        'js_runtimes': {'node': {}},
-                        'remote_components': ['ejs:github'],
+                        'extractor_args': {
+                            'youtube': {
+                                'player_client': ['android'],
+                            }
+                        }
                     }
                     if os.path.exists(COOKIES_FILE):
                         ydl_opts['cookiefile'] = COOKIES_FILE

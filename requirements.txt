@@ -1,3 +1,5 @@
 yt-dlp
 syncedlyrics
 requests
+quickjs
+yt-dlp-ejs
