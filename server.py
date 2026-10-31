@@ -59,6 +59,14 @@ def fetch_smart_netease_lyrics(query):
             
     return None
 
+def clean_channel_name(ch):
+    if not ch:
+        return ""
+    cleaned = re.sub(r'[\-_]\s*topic\b', '', ch, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\b(topic)\b', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'vevo$', '', cleaned, flags=re.IGNORECASE)
+    return cleaned.strip()
+
 def clean_title_for_lyrics(title):
     cleaned = re.sub(r'[\(\[\{][^\)\]\}]*(?:official|video|audio|lyric|mv|remastered|4k|hd|live|ft\.|feat\.|clip|visualizer)[^\)\]\}]*[\)\]\}]', '', title, flags=re.IGNORECASE)
     cleaned = re.sub(r'\b(official|music video|lyric video|audio|remastered|4k|hd|visualizer)\b', '', cleaned, flags=re.IGNORECASE)
@@ -205,6 +213,13 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
 
     def handle_api_lyrics(self, params):
         q = params.get('q', [''])[0].strip()
+        artist = params.get('artist', [''])[0].strip()
+        
+        if artist:
+            clean_art = clean_channel_name(artist)
+            if clean_art and clean_art.lower() not in q.lower():
+                q = f"{q} {clean_art}"
+
         if not q:
             self.send_json({"found": False, "lines": [], "lrc": ""}, 400)
             return

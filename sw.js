@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tws-player-v8-responsive';
+const CACHE_NAME = 'tws-player-v9-meta-fix';
 const ASSETS = [
   '/',
   '/index.html',
