@@ -588,9 +588,7 @@
     <!-- Header -->
     <header class="app-header">
       <div class="brand-wrap">
-        <div class="brand-badge">
-          <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-        </div>
+        <img src="app-logo.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 9px; object-fit: cover; box-shadow: 0 4px 14px rgba(58, 155, 255, 0.35); flex-shrink: 0;">
         <div class="brand-text">TWS LiveSync</div>
         <span class="brand-tag">PRO</span>
       </div>
@@ -625,7 +623,7 @@
     <!-- Stream View -->
     <div id="view-mode-stream" class="search-section">
       <div class="search-input-wrap">
-        <input id="input-search" type="text" placeholder="Ketik judul lagu atau artis..." value="Lana Del Rey Young and Beautiful">
+        <input id="input-search" type="text" placeholder="Ketik judul lagu atau artis..." value="">
         <button id="btn-search-exec" class="search-btn" onclick="triggerSearch()">Cari</button>
       </div>
 
@@ -1153,7 +1151,9 @@
 
         const nextTime = parsedLyricsList[currentLineIdx + 1] ? parsedLyricsList[currentLineIdx + 1].time : (cur + 3.5);
         const lineDuration = Math.max(1.2, nextTime - currentLine.time);
-        const chunkIntervalMs = Math.max(700, (lineDuration * 1000) / activeChunks.length);
+        
+        // Chunk pacing: between 800ms and 1500ms max per chunk so text never lags behind
+        const chunkIntervalMs = Math.min(1500, Math.max(800, (Math.min(lineDuration, 2.2 * activeChunks.length) * 1000) / activeChunks.length));
 
         pushBluetoothMetadata(activeChunks[0]);
 

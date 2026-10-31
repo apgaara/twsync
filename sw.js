@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tws-player-v12-offset-direct';
+const CACHE_NAME = 'tws-livesync-v13';
 const ASSETS = [
   '/',
   '/index.html',

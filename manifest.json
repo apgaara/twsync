@@ -1,11 +1,11 @@
 {
-  "name": "TWS Smart Lyric Player",
-  "short_name": "TWS Karaoke",
-  "description": "Pemutar musik pintar dengan sinkronisasi lirik real-time ke layar TWS Outro Blast X19",
+  "name": "TWS LiveSync PRO",
+  "short_name": "TWS LiveSync",
+  "description": "Smart synchronized lyric player for touchscreen TWS cases",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#238636",
+  "background_color": "#0f1116",
+  "theme_color": "#0f1116",
   "icons": [
     {
       "src": "icon-192.png",
