@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TWS Smart Lyric Player PRO</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#238636">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #151d2c;
+      --border: #232f48;
+      --primary: #238636;
+      --primary-hover: #2ea043;
+      --accent: #58a6ff;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 14px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .container {
+      max-width: 460px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-wrap {
+      display: flex;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 11px;
+      background: #23863633;
+      color: #7ee787;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid #23863666;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #238636;
+      color: #fff;
+    }
+
+    /* Search Box */
+    .search-box {
+      display: flex;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px 10px;
+    }
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 14px;
+      padding: 6px;
+    }
+    .search-box button {
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .search-box button:active { background: var(--primary-hover); }
+
+    /* Quick Tags */
+    .quick-tags {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .tag {
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      color: var(--accent);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 16px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .tag:active { background: rgba(88, 166, 255, 0.25); }
+
+    /* Search Results List */
+    .results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .result-item:active {
+      background: #1c273c;
+      border-color: var(--accent);
+    }
+    .result-thumb {
+      width: 52px;
+      height: 38px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #000;
+      flex-shrink: 0;
+    }
+    .result-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .result-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .result-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+    }
+    .play-btn-mini {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Live Bluetooth TWS Status Card */
+    .tws-live-card {
+      background: #090d15;
+      border: 2px solid var(--primary);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(35, 134, 54, 0.15);
+    }
+    .tws-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(35, 134, 54, 0.15);
+      color: #7ee787;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: #7ee787;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+    .tws-display-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: #ffffff;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.3;
+      letter-spacing: 0.3px;
+    }
+    .tws-display-artist {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Player Controls */
+    .player-controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .progress-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: #21262d;
+      border-radius: 3px;
+      position: relative;
+      cursor: pointer;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    .ctrl-btns {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+    .ctrl-btn {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: #fff;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .ctrl-btn.play-main {
+      background: var(--primary);
+      width: 46px;
+      height: 46px;
+      font-size: 18px;
+    }
+
+    /* Tuning Controls (Anti-Cut & Offset) */
+    .tuning-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .tuning-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tuning-btn {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .tuning-val {
+      font-weight: 700;
+      color: #7ee787;
+    }
+
+    /* Karaoke Lyrics Box */
+    .lyrics-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      height: 200px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      position: relative;
+    }
+    .lyric-line {
+      font-size: 13px;
+      padding: 8px 10px;
+      color: var(--text-muted);
+      border-radius: 8px;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-align: left;
+    }
+    .lyric-line.active {
+      color: #7ee787;
+      font-weight: 700;
+      font-size: 15px;
+      background: rgba(35, 134, 54, 0.15);
+      border-left: 3px solid var(--primary);
+    }
+
+    /* MP3 Local Mode Box */
+    .mp3-card {
+      background: #111827;
+      border: 2px dashed #374151;
+      border-radius: 14px;
+      padding: 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: block;
+    }
+    .mp3-card:hover {
+      border-color: var(--primary);
+      background: #131d2e;
+    }
+    .mp3-card h3 {
+      font-size: 15px;
+      color: #7ee787;
+      margin-bottom: 6px;
+    }
+    .mp3-card p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Action bar under lyrics */
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .action-btn {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎧 TWS Lyric Player PRO</h1>
+      <div class="badge-wrap">
+        <span id="install-btn" class="badge" onclick="installPWA()">📲 Pasang</span>
+      </div>
+    </div>
+
+    <!-- Mode Selector -->
+    <div class="tabs">
+      <button id="tab-search" class="tab-btn active" onclick="switchTab('search')">🌐 Cari Musik & Lirik (Unlimited)</button>
+      <button id="tab-mp3" class="tab-btn" onclick="switchTab('mp3')">📁 MP3 dari HP</button>
+    </div>
+
+    <!-- TAB 1: Search Online -->
+    <div id="section-search">
+      <div class="search-box">
+        <input id="search-input" type="text" placeholder="Ketik judul lagu / artis..." value="Bernadya Satu Bulan">
+        <button id="search-btn" onclick="performSearch()">Cari</button>
+      </div>
+      <div class="quick-tags" style="margin-top: 8px;">
+        <span class="tag" onclick="quickSearch('Bernadya Satu Bulan')">Bernadya</span>
+        <span class="tag" onclick="quickSearch('Nadin Amizah Rayuan Perempuan Gila')">Nadin Amizah</span>
+        <span class="tag" onclick="quickSearch('Sal Priadi Gala Bunga Matahari')">Sal Priadi</span>
+        <span class="tag" onclick="quickSearch('Sheila On 7 Dan')">Sheila On 7</span>
+        <span class="tag" onclick="quickSearch('Hindia Evaluasi')">Hindia</span>
+        <span class="tag" onclick="quickSearch('Ariana Grande bye')">Ariana Grande</span>
+      </div>
+      <div id="results-container" class="results-list" style="margin-top: 10px; display: none;"></div>
+    </div>
+
+    <!-- TAB 2: MP3 Local -->
+    <div id="section-mp3" style="display: none;">
+      <label class="mp3-card" for="file-input">
+        <h3>📁 Ketuk untuk Pilih File MP3 dari HP</h3>
+        <p>✅ Mendukung Layar Kunci / Sleep &nbsp;|&nbsp; ✅ Lirik Auto-Sync</p>
+        <input id="file-input" type="file" accept="audio/*" onchange="handleLocalFile(event)">
+      </label>
+    </div>
+
+    <!-- Live Bluetooth TWS Status Card -->
+    <div class="tws-live-card">
+      <div class="tws-badge">
+        <span class="dot"></span> Tampil di Layar TWS (Anti-Kepotong)
+      </div>
+      <div id="tws-title" class="tws-display-title">♪ Pilih Lagu untuk Memulai ♪</div>
+      <div id="tws-artist" class="tws-display-artist">Outro Blast X19 Sync</div>
+    </div>
+
+    <!-- Unified Player Controls -->
+    <div class="player-controls">
+      <div class="progress-bar-wrap">
+        <span id="cur-time">00:00</span>
+        <div id="progress-bar" class="progress-bar" onclick="seekAudio(event)">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <span id="dur-time">00:00</span>
+      </div>
+      <div class="ctrl-btns">
+        <button class="ctrl-btn" onclick="seekRelative(-5)">-5s</button>
+        <button id="play-pause-btn" class="ctrl-btn play-main" onclick="togglePlay()">▶</button>
+        <button class="ctrl-btn" onclick="seekRelative(5)">+5s</button>
+      </div>
+    </div>
+
+    <!-- Tuning Tools (Anti-Cut & Offset) -->
+    <div class="tuning-card">
+      <div class="tuning-group">
+        <span>Batas Karakter:</span>
+        <button class="tuning-btn" onclick="adjustMaxChars(-2)">-</button>
+        <span id="max-chars-val" class="tuning-val">16</span>
+        <button class="tuning-btn" onclick="adjustMaxChars(2)">+</button>
+      </div>
+      <div class="tuning-group">
+        <span>Offset Lirik:</span>
+        <button class="tuning-btn" onclick="adjustOffset(-0.3)">-0.3s</button>
+        <span id="offset-val" class="tuning-val">0.0s</span>
+        <button class="tuning-btn" onclick="adjustOffset(0.3)">+0.3s</button>
+      </div>
+    </div>
+
+    <!-- Lyrics Window -->
+    <div class="lyrics-container" id="lyrics-box">
+      <div class="lyric-line" style="text-align: center; margin-top: 60px;">
+        Lirik sinkron otomatis akan mengalir di sini...
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="action-btn" onclick="customLyricSearch()">🔍 Cari Lirik Lain</button>
+      <button class="action-btn" onclick="pasteLRC()">📝 Tempel LRC</button>
+    </div>
+  </div>
+
+  <!-- Audio Elements -->
+  <audio id="sync-keeper" loop src="quiet.wav" preload="auto"></audio>
+  <audio id="main-audio" preload="auto"></audio>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+      } else {
+        alert("Ketuk titik tiga di pojok kanan atas Chrome, lalu pilih 'Install app' atau 'Tambahkan ke Layar Utama'.");
+      }
+    }
+
+    const mainAudio = document.getElementById('main-audio');
+    const syncKeeper = document.getElementById('sync-keeper');
+    const twsTitle = document.getElementById('tws-title');
+    const twsArtist = document.getElementById('tws-artist');
+    const lyricsBox = document.getElementById('lyrics-box');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const progressFill = document.getElementById('progress-fill');
+    const curTimeEl = document.getElementById('cur-time');
+    const durTimeEl = document.getElementById('dur-time');
+    const resultsContainer = document.getElementById('results-container');
+
+    let currentTab = 'search';
+    let currentSong = { title: "", artist: "", id: "" };
+    let parsedLyrics = [];
+    let activeLineIdx = -1;
+    let activeChunkIdx = -1;
+    let currentChunks = [];
+    let chunkInterval = null;
+    let syncLoopTimer = null;
+
+    let maxChars = 16;
+    let lyricOffset = 0.0;
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-search').classList.toggle('active', tab === 'search');
+      document.getElementById('tab-mp3').classList.toggle('active', tab === 'mp3');
+      document.getElementById('section-search').style.display = tab === 'search' ? 'block' : 'none';
+      document.getElementById('section-mp3').style.display = tab === 'mp3' ? 'block' : 'none';
+    }
+
+    function adjustMaxChars(diff) {
+      maxChars = Math.max(10, Math.min(26, maxChars + diff));
+      document.getElementById('max-chars-val').innerText = maxChars;
+    }
+
+    function adjustOffset(diff) {
+      lyricOffset = Math.round((lyricOffset + diff) * 10) / 10;
+      document.getElementById('offset-val').innerText = (lyricOffset > 0 ? '+' : '') + lyricOffset + 's';
+    }
+
+    function resetLyricState() {
+      parsedLyrics = [];
+      activeLineIdx = -1;
+      activeChunkIdx = -1;
+      currentChunks = [];
+      if (chunkInterval) clearInterval(chunkInterval);
+      if (syncLoopTimer) clearInterval(syncLoopTimer);
+      lyricsBox.innerHTML = '<div class="lyric-line" style="text-align:center; margin-top:60px;">Memuat lirik...</div>';
+      updateBluetoothText("♪ Siap Memutar ♪");
+    }
+
+    function chunkText(text, limit) {
+      if (!text || text.length <= limit) return [text || ""];
+      const words = text.split(/\s+/);
+      const chunks = [];
+      let cur = "";
+      for (const w of words) {
+        if ((cur ? cur + " " + w : w).length <= limit) {
+          cur = cur ? cur + " " + w : w;
+        } else {
+          if (cur) chunks.push(cur);
+          cur = w;
+        }
+      }
+      if (cur) chunks.push(cur);
+      return chunks.length > 0 ? chunks : [text.slice(0, limit)];
+    }
+
+    // ONLINE SEARCH
+    async function performSearch() {
+      const q = document.getElementById('search-input').value.trim();
+      if (!q) return;
+
+      const btn = document.getElementById('search-btn');
+      btn.innerText = "⏳ Cari...";
+      btn.disabled = true;
+      resultsContainer.style.display = "block";
+      resultsContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:12px; color:#8b949e;">Mencari di YouTube & Database Musik...</div>';
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        btn.innerText = "Cari";
+        btn.disabled = false;
+
+        if (!data.results || data.results.length === 0) {
+          resultsContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:12px; color:#f85149;">Lagu tidak ditemukan! Coba kata kunci lain.</div>';
+          return;
+        }
+
+        renderSearchResults(data.results);
+      } catch (err) {
+        btn.innerText = "Cari";
+        btn.disabled = false;
+        resultsContainer.innerHTML = `<div style="text-align:center; padding:15px; font-size:12px; color:#f85149;">Gagal mencari: ${err.message}</div>`;
+      }
+    }
+
+    function quickSearch(title) {
+      document.getElementById('search-input').value = title;
+      performSearch();
+    }
+
+    function renderSearchResults(items) {
+      resultsContainer.innerHTML = "";
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `
+          <img class="result-thumb" src="${item.thumbnail}" onerror="this.src='icon-192.png'">
+          <div class="result-info">
+            <div class="result-title">${item.title}</div>
+            <div class="result-meta">
+              <span>👤 ${item.channel || 'Artis'}</span>
+              <span>⏱ ${item.duration_str}</span>
+            </div>
+          </div>
+          <button class="play-btn-mini">▶</button>
+        `;
+        div.onclick = () => selectOnlineSong(item);
+        resultsContainer.appendChild(div);
+      });
+    }
+
+    async function selectOnlineSong(song) {
+      resetLyricState();
+      currentSong = {
+        id: song.id,
+        title: song.clean_title || song.title,
+        artist: song.channel || "Musik"
+      };
+
+      twsTitle.innerText = "Menyiapkan audio...";
+      twsArtist.innerText = currentSong.title;
+
+      // Start fetching lyrics in background
+      fetchLyricsAPI(currentSong.title);
+
+      // Play audio via backend streaming
+      mainAudio.src = `/api/audio?id=${song.id}`;
+      mainAudio.load();
+      mainAudio.play().then(() => {
+        syncKeeper.play().catch(() => {});
+        playPauseBtn.innerText = "⏸";
+        startSyncLoop();
+        setupMediaSession();
+      }).catch(err => {
+        console.warn("Autoplay block or error:", err);
+      });
+    }
+
+    // LYRICS FETCHER VIA LOCAL PYTHON BACKEND
+    async function fetchLyricsAPI(query) {
+      try {
+        const res = await fetch(`/api/lyrics?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data.found && data.lines && data.lines.length > 0) {
+          parsedLyrics = data.lines;
+          renderLyrics(parsedLyrics);
+        } else {
+          parsedLyrics = [];
+          lyricsBox.innerHTML = `
+            <div class="lyric-line" style="text-align:center; margin-top:50px;">
+              Lirik otomatis tidak ditemukan.<br>
+              <button class="action-btn" style="margin-top:10px;" onclick="customLyricSearch()">🔍 Cari dengan Kata Kunci Lain</button>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error("Fetch lyrics error:", err);
+      }
+    }
+
+    function customLyricSearch() {
+      const q = prompt("Ketik nama lagu & artis untuk lirik:", currentSong.title);
+      if (q) {
+        resetLyricState();
+        fetchLyricsAPI(q);
+      }
+    }
+
+    function pasteLRC() {
+      const lrcText = prompt("Tempel teks lirik format LRC ([mm:ss.xx] teks):");
+      if (lrcText) {
+        resetLyricState();
+        parsedLyrics = parseRawLRC(lrcText);
+        if (parsedLyrics.length > 0) {
+          renderLyrics(parsedLyrics);
+        } else {
+          alert("Format LRC tidak valid!");
+        }
+      }
+    }
+
+    function parseRawLRC(lrcText) {
+      const lines = lrcText.split('\n');
+      const result = [];
+      const timeRegex = /\[(\d{2}):(\d{2})\.?(\d{2,3})?\]/;
+
+      lines.forEach(line => {
+        const match = timeRegex.exec(line);
+        if (match) {
+          const min = parseInt(match[1]);
+          const sec = parseInt(match[2]);
+          const ms = match[3] ? parseInt(match[3].padEnd(3, '0').slice(0, 3)) : 0;
+          const time = min * 60 + sec + ms / 1000;
+          const text = line.replace(/\[\d{2}:\d{2}\.?\d{0,3}\]/g, '').trim();
+          if (text) {
+            result.push({ time, text });
+          }
+        }
+      });
+      return result.sort((a, b) => a.time - b.time);
+    }
+
+    // LOCAL MP3 FILE
+    function handleLocalFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      resetLyricState();
+      const cleanName = file.name.replace(/\.[a-zA-Z0-9]+$/, '').replace(/[-_]/g, ' ');
+      currentSong = { title: cleanName, artist: "File HP", id: "" };
+
+      mainAudio.src = URL.createObjectURL(file);
+      twsTitle.innerText = "Memuat MP3...";
+      fetchLyricsAPI(cleanName);
+
+      mainAudio.play().then(() => {
+        syncKeeper.play().catch(() => {});
+        playPauseBtn.innerText = "⏸";
+        startSyncLoop();
+        setupMediaSession();
+      });
+    }
+
+    function renderLyrics(lyrics) {
+      lyricsBox.innerHTML = "";
+      lyrics.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'lyric-line';
+        div.id = `line-${idx}`;
+        div.innerText = item.text;
+        div.onclick = () => {
+          mainAudio.currentTime = Math.max(0, item.time - 0.2);
+        };
+        lyricsBox.appendChild(div);
+      });
+    }
+
+    function updateBluetoothText(chunk) {
+      twsTitle.innerText = chunk;
+      twsArtist.innerText = currentSong.title;
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: chunk,
+          artist: currentSong.artist || "TWS Player",
+          album: currentSong.title
+        });
+        navigator.mediaSession.playbackState = mainAudio.paused ? "paused" : "playing";
+      }
+    }
+
+    function setupMediaSession() {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => {
+          mainAudio.play();
+          playPauseBtn.innerText = "⏸";
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          mainAudio.pause();
+          playPauseBtn.innerText = "▶";
+        });
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.seekTime) mainAudio.currentTime = details.seekTime;
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => seekRelative(5));
+        navigator.mediaSession.setActionHandler('seekbackward', () => seekRelative(-5));
+      }
+    }
+
+    function togglePlay() {
+      if (mainAudio.paused) {
+        mainAudio.play();
+        syncKeeper.play().catch(() => {});
+        playPauseBtn.innerText = "⏸";
+        startSyncLoop();
+      } else {
+        mainAudio.pause();
+        playPauseBtn.innerText = "▶";
+        stopSyncLoop();
+      }
+    }
+
+    function seekRelative(sec) {
+      mainAudio.currentTime = Math.max(0, Math.min(mainAudio.duration || 0, mainAudio.currentTime + sec));
+    }
+
+    function seekAudio(e) {
+      const rect = progressBar.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      if (mainAudio.duration) {
+        mainAudio.currentTime = pos * mainAudio.duration;
+      }
+    }
+
+    function formatTime(s) {
+      if (isNaN(s)) return "00:00";
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    mainAudio.ontimeupdate = () => {
+      curTimeEl.innerText = formatTime(mainAudio.currentTime);
+      if (mainAudio.duration) {
+        durTimeEl.innerText = formatTime(mainAudio.duration);
+        progressFill.style.width = `${(mainAudio.currentTime / mainAudio.duration) * 100}%`;
+      }
+    };
+
+    mainAudio.onplay = () => { playPauseBtn.innerText = "⏸"; };
+    mainAudio.onpause = () => { playPauseBtn.innerText = "▶"; };
+
+    function startSyncLoop() {
+      if (syncLoopTimer) clearInterval(syncLoopTimer);
+      syncLoopTimer = setInterval(checkLyricSync, 150);
+    }
+
+    function stopSyncLoop() {
+      if (syncLoopTimer) clearInterval(syncLoopTimer);
+      clearInterval(chunkInterval);
+    }
+
+    function checkLyricSync() {
+      if (parsedLyrics.length === 0) return;
+
+      const cur = mainAudio.currentTime + lyricOffset;
+
+      let matchedIdx = -1;
+      for (let i = 0; i < parsedLyrics.length; i++) {
+        if (cur >= parsedLyrics[i].time) {
+          matchedIdx = i;
+        } else {
+          break;
+        }
+      }
+
+      if (matchedIdx !== -1 && matchedIdx !== activeLineIdx) {
+        activeLineIdx = matchedIdx;
+        const currentLine = parsedLyrics[activeLineIdx];
+
+        document.querySelectorAll('.lyric-line').forEach(el => el.classList.remove('active'));
+        const activeEl = document.getElementById(`line-${activeLineIdx}`);
+        if (activeEl) {
+          activeEl.classList.add('active');
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        clearInterval(chunkInterval);
+        currentChunks = chunkText(currentLine.text, maxChars);
+        activeChunkIdx = 0;
+
+        const nextTime = parsedLyrics[activeLineIdx + 1] ? parsedLyrics[activeLineIdx + 1].time : (cur + 3.5);
+        const lineDuration = Math.max(1.2, nextTime - currentLine.time);
+        const chunkIntervalMs = Math.max(700, (lineDuration * 1000) / currentChunks.length);
+
+        updateBluetoothText(currentChunks[0]);
+
+        if (currentChunks.length > 1) {
+          chunkInterval = setInterval(() => {
+            activeChunkIdx++;
+            if (activeChunkIdx < currentChunks.length) {
+              updateBluetoothText(currentChunks[activeChunkIdx]);
+            } else {
+              clearInterval(chunkInterval);
+            }
+          }, chunkIntervalMs);
+        }
+      }
+    }
+
+    document.getElementById('search-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') performSearch();
+    });
+  </script>
+</body>
+</html>
