@@ -19,6 +19,38 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_DIR = os.environ.get("CACHE_DIR", os.path.join(tempfile.gettempdir(), "tws_cache"))
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+INVIDIOUS_INSTANCES = [
+    'https://yt.chocolatemoo53.com',
+    'https://invidious.nerdvpn.de',
+    'https://inv.nadeko.net',
+    'https://invidious.tiekoetter.com'
+]
+
+def fallback_invidious_download(vid_id, out_file):
+    for inst in INVIDIOUS_INSTANCES:
+        try:
+            r = requests.get(f'{inst}/api/v1/videos/{vid_id}', timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                audio_formats = [f for f in data.get('adaptiveFormats', []) if 'audio' in f.get('type', '')]
+                if not audio_formats:
+                    continue
+                best_audio = sorted(audio_formats, key=lambda x: int(x.get('bitrate', 0)), reverse=True)[0]
+                stream_url = best_audio.get('url')
+                if not stream_url:
+                    continue
+                with requests.get(stream_url, stream=True, timeout=15) as s:
+                    s.raise_for_status()
+                    with open(out_file, 'wb') as f:
+                        for chunk in s.iter_content(chunk_size=65536):
+                            if chunk:
+                                f.write(chunk)
+                if os.path.exists(out_file) and os.path.getsize(out_file) > 10000:
+                    return True
+        except Exception:
+            continue
+    return False
+
 LYRICS_CACHE = {}
 DOWNLOAD_LOCK = threading.Lock()
 ACTIVE_DOWNLOADS = set()
@@ -299,9 +331,12 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                         'outtmpl': os.path.join(CACHE_DIR, f"{vid_id}.%(ext)s"),
                         'quiet': True,
                         'noplaylist': True,
+                        'source_address': '0.0.0.0',
+                        'js_runtimes': {'node': {}},
+                        'remote_components': ['ejs:github'],
                         'extractor_args': {
                             'youtube': {
-                                'player_client': ['android'],
+                                'player_client': ['android', 'web'],
                             }
                         }
                     }
@@ -309,7 +344,14 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                         ydl.download([f"https://www.youtube.com/watch?v={vid_id}"])
                 except Exception as e:
                     dl_error_msg = str(e)
-                    print(f"[Download Error for {vid_id}]: {e}")
+                    print(f"[Download Error for {vid_id} via yt-dlp]: {e}")
+                    # Invidious proxy fallback
+                    fallback_file = os.path.join(CACHE_DIR, f"{vid_id}.m4a")
+                    try:
+                        if fallback_invidious_download(vid_id, fallback_file):
+                            print(f"[Fallback Invidious Download Success for {vid_id}]")
+                    except Exception as fe:
+                        print(f"[Fallback error for {vid_id}]: {fe}")
                 finally:
                     with DOWNLOAD_LOCK:
                         ACTIVE_DOWNLOADS.discard(vid_id)
