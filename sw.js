@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tws-player-v6';
+const CACHE_NAME = 'tws-player-v7-pawcus';
 const ASSETS = [
   '/',
   '/index.html',
