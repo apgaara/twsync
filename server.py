@@ -336,7 +336,6 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                 try:
                     ydl_opts = {
                         'format': 'bestaudio/18/best',
-                        'outtmpl': os.path.join(CACHE_DIR, f"{vid_id}.%(ext)s"),
                         'quiet': True,
                         'noplaylist': True,
                         'source_address': '0.0.0.0',
@@ -348,8 +347,21 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                     }
                     if os.path.exists(COOKIES_FILE):
                         ydl_opts['cookiefile'] = COOKIES_FILE
+
+                    target_file = os.path.join(CACHE_DIR, f"{vid_id}.mp4")
+
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([f"https://www.youtube.com/watch?v={vid_id}"])
+                        info = ydl.extract_info(f"https://www.youtube.com/watch?v={vid_id}", download=False)
+                        stream_url = info.get('url')
+                        if stream_url:
+                            resp = requests.get(stream_url, stream=True, timeout=30)
+                            resp.raise_for_status()
+                            with open(target_file, 'wb') as f:
+                                for chunk in resp.iter_content(chunk_size=65536):
+                                    if chunk:
+                                        f.write(chunk)
+                        else:
+                            ydl.download([f"https://www.youtube.com/watch?v={vid_id}"])
                 except Exception as e:
                     dl_error_msg = str(e)
                     print(f"[Download Error for {vid_id} via yt-dlp]: {e}")
