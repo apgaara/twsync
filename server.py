@@ -12,9 +12,11 @@ import yt_dlp
 import syncedlyrics
 from syncedlyrics.providers import NetEase
 
+import tempfile
+
 PORT = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 10000))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_DIR = os.path.join(BASE_DIR, "cache")
+CACHE_DIR = os.environ.get("CACHE_DIR", os.path.join(tempfile.gettempdir(), "tws_cache"))
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 LYRICS_CACHE = {}
@@ -280,6 +282,7 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
         matches = [f for f in glob.glob(os.path.join(CACHE_DIR, f"{vid_id}.*")) if not f.endswith('.part')]
         audio_file = matches[0] if matches else None
 
+        dl_error_msg = ""
         if not audio_file:
             # Need to download
             with DOWNLOAD_LOCK:
@@ -296,10 +299,16 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                         'outtmpl': os.path.join(CACHE_DIR, f"{vid_id}.%(ext)s"),
                         'quiet': True,
                         'noplaylist': True,
+                        'extractor_args': {
+                            'youtube': {
+                                'player_client': ['android', 'ios', 'web'],
+                            }
+                        }
                     }
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([f"https://www.youtube.com/watch?v={vid_id}"])
                 except Exception as e:
+                    dl_error_msg = str(e)
                     print(f"[Download Error for {vid_id}]: {e}")
                 finally:
                     with DOWNLOAD_LOCK:
@@ -314,9 +323,10 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
                 audio_file = matches[0]
 
         if not audio_file or not os.path.exists(audio_file):
-            self.send_response(404)
+            self.send_response(500)
             self.end_headers()
-            self.wfile.write(b"Audio could not be downloaded")
+            msg = f"Audio download failed: {dl_error_msg}" if dl_error_msg else "Audio could not be downloaded"
+            self.wfile.write(msg.encode())
             return
 
         # Serve audio with Range header support
