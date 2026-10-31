@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>TWS LiveSync • Smart Lyric Player</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f1116">
@@ -27,103 +27,99 @@
       --line-2: #313847;
       --accent: #3a9bff;
       --accent-strong: #0a6fe0;
-      --accent-glow: rgba(58, 155, 255, 0.25);
       --pill-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
       --pill-border: rgba(255, 255, 255, 0.08);
       --shadow-glass: inset 0 1px 0.5px rgba(255, 255, 255, 0.15), 0 8px 24px -8px rgba(6, 26, 58, 0.5);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      touch-action: manipulation;
+    }
+
     html, body {
       background: var(--bg);
       color: var(--ink);
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
+      width: 100%;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 12px 14px 30px;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      overflow-x: hidden;
     }
-    /* Subtle background ambient glow like Pawcus */
+
+    /* Ambient top glow */
     body::before {
       content: "";
       position: fixed;
-      top: -120px;
+      top: -100px;
       left: 50%;
       transform: translateX(-50%);
-      width: 480px;
-      height: 350px;
-      background: radial-gradient(ellipse at center, rgba(58, 155, 255, 0.14) 0%, rgba(10, 111, 224, 0.04) 50%, transparent 75%);
+      width: 100vw;
+      max-width: 500px;
+      height: 280px;
+      background: radial-gradient(ellipse at center, rgba(58, 155, 255, 0.15) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
 
-    .container {
-      max-width: 450px;
+    .app-shell {
       width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 12px 14px 24px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       position: relative;
       z-index: 1;
     }
 
-    /* Site Header */
-    .site-header {
+    /* Header */
+    .app-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 2px;
+      width: 100%;
     }
-    .brand {
+    .brand-wrap {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
     }
-    .brand-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
+    .brand-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
       background: linear-gradient(135deg, #3a9bff 0%, #0a6fe0 100%);
       display: grid;
       place-items: center;
-      box-shadow: 0 4px 14px rgba(58, 155, 255, 0.35);
+      box-shadow: 0 4px 12px rgba(58, 155, 255, 0.35);
+      flex-shrink: 0;
     }
-    .brand-icon svg {
-      width: 18px;
-      height: 18px;
-      fill: #fff;
-    }
-    .brand-title {
+    .brand-badge svg { width: 17px; height: 17px; fill: #fff; }
+    .brand-text {
       font-family: var(--font-display);
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
       color: var(--ink);
     }
-    .brand-badge {
-      font-size: 10px;
-      font-weight: 600;
+    .brand-tag {
+      font-size: 9.5px;
+      font-weight: 700;
       color: var(--accent);
       background: rgba(58, 155, 255, 0.12);
       border: 1px solid rgba(58, 155, 255, 0.25);
-      padding: 2px 7px;
+      padding: 2px 6px;
       border-radius: 999px;
-      letter-spacing: 0.02em;
     }
-    .header-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .glass-btn-mini {
+    .header-btn {
       background: var(--pill-bg);
       border: 1px solid var(--pill-border);
       color: var(--ink-2);
-      backdrop-filter: blur(16px);
-      padding: 5px 11px;
+      padding: 5px 12px;
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
@@ -131,312 +127,298 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      backdrop-filter: blur(16px);
       box-shadow: var(--shadow-glass);
-      transition: all 0.2s;
     }
-    .glass-btn-mini:active {
-      transform: scale(0.96);
-      background: rgba(255, 255, 255, 0.12);
-    }
+    .header-btn:active { transform: scale(0.96); }
 
-    /* Mode Navigation Pill (Pawcus style) */
-    .nav-pill-wrap {
+    /* Nav Pill Tabs */
+    .nav-pill-container {
       display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-    .nav-pill {
-      display: inline-flex;
       background: var(--pill-bg);
-      backdrop-filter: blur(20px) saturate(1.6);
+      backdrop-filter: blur(20px);
       border: 1px solid var(--pill-border);
       border-radius: 999px;
       padding: 3px;
-      box-shadow: var(--shadow-glass);
       width: 100%;
+      box-shadow: var(--shadow-glass);
     }
-    .nav-item {
+    .nav-pill-item {
       flex: 1;
       text-align: center;
-      padding: 7px 12px;
+      padding: 7px 8px;
       border-radius: 999px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--muted);
       cursor: pointer;
-      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: all 0.2s;
     }
-    .nav-item.active {
+    .nav-pill-item.active {
       color: #fff;
       background: rgba(255, 255, 255, 0.14);
-      box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.25);
     }
 
-    /* Dynamic Island TWS Screen Mirror (The Spotlight!) */
-    .tws-island {
+    /* Dynamic Island TWS Mirror */
+    .tws-island-card {
       background: linear-gradient(180deg, #181d26 0%, #12151c 100%);
-      border: 1px solid rgba(58, 155, 255, 0.28);
-      border-radius: 20px;
-      padding: 18px 16px;
+      border: 1px solid rgba(58, 155, 255, 0.25);
+      border-radius: 18px;
+      padding: 14px 12px;
       text-align: center;
+      box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.6), 0 0 20px -6px rgba(58, 155, 255, 0.15);
       position: relative;
-      box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(58, 155, 255, 0.18);
       overflow: hidden;
     }
-    .tws-island::before {
+    .tws-island-card::before {
       content: "";
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(58, 155, 255, 0.6), transparent);
     }
-    .tws-meta-tag {
+    .tws-pill-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       background: rgba(58, 155, 255, 0.12);
       border: 1px solid rgba(58, 155, 255, 0.25);
-      padding: 3px 10px;
+      padding: 3px 9px;
       border-radius: 999px;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
-      letter-spacing: 0.06em;
       color: var(--accent);
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .pulse-dot {
       width: 6px;
       height: 6px;
       background: var(--accent);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--accent);
+      box-shadow: 0 0 6px var(--accent);
       animation: pulseGlow 1.8s infinite;
     }
     @keyframes pulseGlow {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.4); opacity: 0.5; }
     }
-    .tws-mirror-text {
+    .tws-live-title {
       font-family: var(--font-display);
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
-      letter-spacing: -0.01em;
       color: #ffffff;
-      min-height: 52px;
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      line-height: 1.35;
-      padding: 0 8px;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      line-height: 1.3;
+      padding: 0 6px;
+      word-break: break-word;
     }
-    .tws-subtext {
-      font-size: 11.5px;
+    .tws-live-sub {
+      font-size: 11px;
       color: var(--muted);
       margin-top: 2px;
-      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* Search Section */
-    .search-wrap {
+    /* Search Box */
+    .search-section {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
+      width: 100%;
     }
-    .search-input-pill {
+    .search-input-wrap {
       display: flex;
       align-items: center;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 5px 6px 5px 14px;
-      transition: all 0.2s ease;
-      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 4px 5px 4px 12px;
+      width: 100%;
     }
-    .search-input-pill:focus-within {
+    .search-input-wrap:focus-within {
       border-color: var(--accent);
-      background: var(--panel-2);
-      box-shadow: 0 0 0 3px rgba(58, 155, 255, 0.15);
+      box-shadow: 0 0 0 2px rgba(58, 155, 255, 0.15);
     }
-    .search-input-pill svg {
-      width: 17px;
-      height: 17px;
-      fill: var(--muted);
-      flex-shrink: 0;
-      margin-right: 8px;
-    }
-    .search-input-pill input {
+    .search-input-wrap input {
       flex: 1;
       background: transparent;
       border: none;
       outline: none;
       color: var(--ink);
-      font-family: var(--font-sans);
       font-size: 14px;
-      font-weight: 500;
-      padding: 6px 0;
+      font-family: var(--font-sans);
+      padding: 7px 0;
+      min-width: 0;
     }
-    .search-input-pill input::placeholder {
-      color: var(--muted-2);
-    }
-    .search-pill-btn {
+    .search-input-wrap input::placeholder { color: var(--muted-2); }
+    .search-btn {
       background: var(--accent);
       border: none;
       color: #fff;
-      font-family: var(--font-sans);
       font-size: 13px;
       font-weight: 600;
-      padding: 8px 18px;
-      border-radius: 10px;
+      padding: 8px 16px;
+      border-radius: 9px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(58, 155, 255, 0.35);
-      transition: all 0.18s;
       flex-shrink: 0;
+      box-shadow: 0 3px 10px rgba(58, 155, 255, 0.3);
     }
-    .search-pill-btn:active {
-      transform: scale(0.96);
-      background: var(--accent-strong);
-    }
+    .search-btn:active { transform: scale(0.96); }
 
-    /* Quick Tags / Chips */
-    .chips-row {
+    /* Chips */
+    .chips-container {
       display: flex;
       gap: 6px;
       overflow-x: auto;
-      padding-bottom: 2px;
       scrollbar-width: none;
+      padding-bottom: 2px;
       -webkit-overflow-scrolling: touch;
+      width: 100%;
     }
-    .chips-row::-webkit-scrollbar { display: none; }
-    .chip {
+    .chips-container::-webkit-scrollbar { display: none; }
+    .chip-item {
       background: var(--panel);
       border: 1px solid var(--line);
       color: var(--ink-2);
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 500;
-      padding: 5px 12px;
+      padding: 5px 11px;
       border-radius: 999px;
       white-space: nowrap;
       cursor: pointer;
-      transition: all 0.18s;
+      flex-shrink: 0;
     }
-    .chip:hover, .chip:active {
-      background: var(--panel-2);
-      border-color: var(--line-2);
-      color: var(--accent);
-    }
+    .chip-item:active { color: var(--accent); border-color: var(--accent); }
 
-    /* Results List (Spotify / Apple Music style) */
-    .results-card {
+    /* Search Results Drawer / Dropdown */
+    .results-dropdown {
       background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
+      border: 1px solid var(--line-2);
+      border-radius: 14px;
       overflow: hidden;
-      max-height: 270px;
+      max-height: 240px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
-    .result-row {
+    .results-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--line);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+    .results-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .result-item-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
+      gap: 10px;
+      padding: 9px 12px;
       border-bottom: 1px solid var(--line);
       cursor: pointer;
-      transition: background 0.15s;
     }
-    .result-row:last-child { border-bottom: none; }
-    .result-row:active {
-      background: var(--panel-2);
-    }
-    .result-cover {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
+    .result-item-row:last-child { border-bottom: none; }
+    .result-item-row:active { background: var(--panel-2); }
+    .result-item-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 7px;
       object-fit: cover;
       background: #000;
       flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
-    .result-details {
+    .result-item-info {
       flex: 1;
       min-width: 0;
     }
-    .result-name {
-      font-size: 13.5px;
+    .result-item-title {
+      font-size: 13px;
       font-weight: 600;
       color: var(--ink);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .result-sub {
-      font-size: 11.5px;
+    .result-item-meta {
+      font-size: 11px;
       color: var(--muted);
-      margin-top: 2px;
+      margin-top: 1px;
       display: flex;
-      align-items: center;
       gap: 6px;
     }
-    .row-play-btn {
-      width: 32px;
-      height: 32px;
+    .result-item-play {
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      background: var(--pill-bg);
-      border: 1px solid var(--pill-border);
+      background: rgba(58, 155, 255, 0.12);
       color: var(--accent);
+      border: 1px solid rgba(58, 155, 255, 0.25);
       display: grid;
       place-items: center;
       flex-shrink: 0;
-      transition: transform 0.15s;
     }
-    .row-play-btn svg { width: 14px; height: 14px; fill: currentColor; transform: translateX(1px); }
+    .result-item-play svg { width: 12px; height: 12px; fill: currentColor; transform: translateX(1px); }
 
-    /* Player Controls Card */
+    /* Player Card */
     .player-card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 14px 16px;
+      border-radius: 16px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.4);
+      gap: 10px;
+      width: 100%;
     }
-    .track-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .track-titles {
+    .track-info-row {
       min-width: 0;
-      flex: 1;
     }
-    .track-title {
-      font-size: 15px;
+    .track-active-name {
+      font-size: 14.5px;
       font-weight: 700;
       color: var(--ink);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .track-artist {
-      font-size: 12px;
+    .track-active-artist {
+      font-size: 11.5px;
       color: var(--muted);
       margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .progress-section {
+    .seek-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
-    .progress-track {
+    .seek-bar-track {
       width: 100%;
       height: 5px;
       background: var(--panel-3);
@@ -444,42 +426,27 @@
       position: relative;
       cursor: pointer;
     }
-    .progress-current {
+    .seek-bar-fill {
       height: 100%;
       background: linear-gradient(90deg, #3a9bff, #6bb4ff);
       border-radius: 999px;
       width: 0%;
       transition: width 0.1s linear;
-      position: relative;
     }
-    .progress-current::after {
-      content: "";
-      position: absolute;
-      right: -3px;
-      top: -2.5px;
-      width: 10px;
-      height: 10px;
-      background: #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 6px rgba(58, 155, 255, 0.8);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .progress-track:hover .progress-current::after { opacity: 1; }
-    .time-labels {
+    .time-digits-row {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--muted-2);
       font-family: var(--font-display);
     }
-    .playback-controls {
+    .controls-row {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
     }
-    .icon-ctrl-btn {
+    .ctrl-skip-btn {
       background: transparent;
       border: none;
       color: var(--ink-2);
@@ -489,13 +456,12 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      transition: all 0.18s;
     }
-    .icon-ctrl-btn svg { width: 19px; height: 19px; fill: currentColor; }
-    .icon-ctrl-btn:active { transform: scale(0.92); color: #fff; }
-    .play-pause-circle {
-      width: 48px;
-      height: 48px;
+    .ctrl-skip-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .ctrl-skip-btn:active { transform: scale(0.92); color: #fff; }
+    .ctrl-play-btn {
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
       background: linear-gradient(135deg, #3a9bff 0%, #0a6fe0 100%);
       color: #fff;
@@ -503,289 +469,258 @@
       display: grid;
       place-items: center;
       cursor: pointer;
-      box-shadow: 0 4px 18px rgba(58, 155, 255, 0.45);
-      transition: all 0.18s;
+      box-shadow: 0 4px 16px rgba(58, 155, 255, 0.4);
     }
-    .play-pause-circle svg { width: 22px; height: 22px; fill: #fff; }
-    .play-pause-circle:active { transform: scale(0.94); box-shadow: 0 2px 10px rgba(58, 155, 255, 0.3); }
+    .ctrl-play-btn svg { width: 20px; height: 20px; fill: #fff; }
+    .ctrl-play-btn:active { transform: scale(0.94); }
 
-    /* Apple Music Style Live Karaoke Lyrics Box */
-    .lyrics-deck {
+    /* Karaoke Lyrics Deck */
+    .lyrics-container-card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 18px;
-      height: 210px;
-      padding: 16px 14px;
+      border-radius: 16px;
+      height: 190px;
+      padding: 12px;
       overflow-y: auto;
       scroll-behavior: smooth;
       position: relative;
-      /* Top and bottom fade masks like Apple Music */
-      mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+      width: 100%;
     }
-    .lyrics-deck::-webkit-scrollbar { width: 3px; }
-    .lyrics-deck::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-    .lyric-item {
-      font-size: 14px;
-      line-height: 1.5;
+    .lyrics-container-card::-webkit-scrollbar { width: 2px; }
+    .lyrics-container-card::-webkit-scrollbar-thumb { background: var(--line); }
+    .karaoke-line {
+      font-size: 13.5px;
+      line-height: 1.45;
       font-weight: 600;
       color: var(--muted);
-      opacity: 0.42;
-      padding: 10px 12px;
-      border-radius: 12px;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 0.4;
+      padding: 8px 10px;
+      border-radius: 8px;
       cursor: pointer;
+      transition: all 0.25s ease;
       transform-origin: left center;
     }
-    .lyric-item:hover {
-      opacity: 0.7;
-    }
-    .lyric-item.current-line {
+    .karaoke-line.active-lyric {
       color: #ffffff;
       opacity: 1;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      transform: scale(1.02);
-      text-shadow: 0 0 20px rgba(58, 155, 255, 0.35);
+      transform: scale(1.015);
+      text-shadow: 0 0 16px rgba(58, 155, 255, 0.35);
       background: rgba(58, 155, 255, 0.08);
       border-left: 3px solid var(--accent);
     }
 
-    /* Minimal Floating Capsule for Tuning & Tools */
-    .tuning-capsule {
+    /* Tuning Bottom Bar */
+    .tuning-wrapper {
       display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       justify-content: space-between;
       align-items: center;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 8px 12px;
-      font-size: 11.5px;
+      border-radius: 12px;
+      padding: 8px 10px;
+      width: 100%;
     }
-    .tune-col {
+    .tune-subgroup {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      font-size: 11px;
     }
-    .tune-btn-mini {
+    .mini-tune-btn {
       background: var(--panel-2);
       border: 1px solid var(--line-2);
       color: var(--ink-2);
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
       display: grid;
       place-items: center;
       cursor: pointer;
       font-size: 11px;
       font-weight: 700;
     }
-    .tune-val {
+    .tune-value-tag {
       font-family: var(--font-display);
       font-weight: 700;
       color: var(--accent);
-      min-width: 26px;
+      min-width: 24px;
       text-align: center;
     }
-    .tools-pill-group {
+    .tools-subgroup {
       display: flex;
       gap: 5px;
     }
-    .tool-pill {
+    .tool-action-btn {
       background: var(--panel-2);
       border: 1px solid var(--line-2);
       color: var(--ink-2);
       font-size: 10.5px;
       font-weight: 600;
       padding: 4px 8px;
-      border-radius: 7px;
+      border-radius: 6px;
       cursor: pointer;
     }
 
-    /* MP3 Local Mode View */
-    .local-drop-card {
+    /* Local File Card */
+    .local-box-view {
       background: var(--panel);
       border: 2px dashed var(--line-2);
-      border-radius: 18px;
-      padding: 28px 20px;
+      border-radius: 16px;
+      padding: 24px 16px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
+      width: 100%;
     }
-    .local-drop-card:active {
-      border-color: var(--accent);
-      background: var(--panel-2);
-    }
-    .local-icon {
-      width: 44px;
-      height: 44px;
-      margin: 0 auto 12px;
-      border-radius: 12px;
-      background: rgba(58, 155, 255, 0.12);
-      display: grid;
-      place-items: center;
-    }
-    .local-icon svg { width: 24px; height: 24px; fill: var(--accent); }
-    .local-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--ink);
-    }
-    .local-desc {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
+    .local-box-view:active { border-color: var(--accent); background: var(--panel-2); }
+    .local-box-title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+    .local-box-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
     input[type="file"] { display: none; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="app-shell">
     <!-- Header -->
-    <header class="site-header">
-      <div class="brand">
-        <div class="brand-icon">
+    <header class="app-header">
+      <div class="brand-wrap">
+        <div class="brand-badge">
           <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
         </div>
-        <div>
-          <div class="brand-title">TWS LiveSync</div>
-        </div>
-        <span class="brand-badge">PRO</span>
+        <div class="brand-text">TWS LiveSync</div>
+        <span class="brand-tag">PRO</span>
       </div>
-      <div class="header-actions">
-        <button id="install-btn" class="glass-btn-mini" onclick="installPWA()">
-          <svg style="width:12px;height:12px;fill:currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
-          Pasang
-        </button>
-      </div>
+      <button id="install-btn" class="header-btn" onclick="installPWA()">
+        <svg style="width:12px;height:12px;fill:currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+        Pasang
+      </button>
     </header>
 
-    <!-- Nav Pill Switcher (Pawcus Style) -->
-    <div class="nav-pill-wrap">
-      <div class="nav-pill">
-        <div id="nav-stream" class="nav-item active" onclick="switchMode('stream')">
-          <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
-          Cari Musik Online
-        </div>
-        <div id="nav-local" class="nav-item" onclick="switchMode('local')">
-          <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
-          MP3 dari HP
-        </div>
+    <!-- Nav Switcher -->
+    <div class="nav-pill-container">
+      <div id="nav-btn-stream" class="nav-pill-item active" onclick="switchPlayerMode('stream')">
+        <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+        Musik Online
+      </div>
+      <div id="nav-btn-local" class="nav-pill-item" onclick="switchPlayerMode('local')">
+        <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+        File MP3 HP
       </div>
     </div>
 
-    <!-- Dynamic Island TWS Screen Mirror -->
-    <div class="tws-island">
-      <div class="tws-meta-tag">
+    <!-- TWS Case Mirror Island -->
+    <div class="tws-island-card">
+      <div class="tws-pill-tag">
         <span class="pulse-dot"></span>
-        <span id="tws-status-text">TWS Screen Mirror • Anti-Cut</span>
+        <span>Layar Case TWS • Anti-Cut</span>
       </div>
-      <div id="tws-mirror-title" class="tws-mirror-text">♪ Siap Memutar Musik ♪</div>
-      <div id="tws-mirror-sub" class="tws-subtext">Bluetooth AVRCP Sync Active</div>
+      <div id="tws-display-text" class="tws-live-title">♪ Siap Memutar ♪</div>
+      <div id="tws-display-sub" class="tws-live-sub">Bluetooth AVRCP Sync Active</div>
     </div>
 
-    <!-- Mode 1: Search Online Stream -->
-    <div id="view-stream" class="search-wrap">
-      <div class="search-input-pill">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <input id="search-query" type="text" placeholder="Cari lagu atau artis..." value="Bernadya Satu Bulan">
-        <button id="search-action-btn" class="search-pill-btn" onclick="executeSearch()">Cari</button>
+    <!-- Stream View -->
+    <div id="view-mode-stream" class="search-section">
+      <div class="search-input-wrap">
+        <input id="input-search" type="text" placeholder="Ketik judul lagu atau artis..." value="Lana Del Rey Young and Beautiful">
+        <button id="btn-search-exec" class="search-btn" onclick="triggerSearch()">Cari</button>
       </div>
 
-      <div class="chips-row">
-        <span class="chip" onclick="quickSelect('Bernadya Satu Bulan')">Bernadya</span>
-        <span class="chip" onclick="quickSelect('Sal Priadi Gala Bunga Matahari')">Sal Priadi</span>
-        <span class="chip" onclick="quickSelect('Nadin Amizah Rayuan Perempuan Gila')">Nadin Amizah</span>
-        <span class="chip" onclick="quickSelect('Avenged Sevenfold Buried Alive')">A7X</span>
-        <span class="chip" onclick="quickSelect('Sheila On 7 Dan')">Sheila On 7</span>
-        <span class="chip" onclick="quickSelect('Ariana Grande bye')">Ariana Grande</span>
+      <div class="chips-container">
+        <span class="chip-item" onclick="pickQuickChip('Bernadya Satu Bulan')">Bernadya</span>
+        <span class="chip-item" onclick="pickQuickChip('Sal Priadi Gala Bunga Matahari')">Sal Priadi</span>
+        <span class="chip-item" onclick="pickQuickChip('Nadin Amizah Rayuan Perempuan Gila')">Nadin Amizah</span>
+        <span class="chip-item" onclick="pickQuickChip('Avenged Sevenfold Buried Alive')">A7X</span>
+        <span class="chip-item" onclick="pickQuickChip('Sheila On 7 Dan')">Sheila On 7</span>
+        <span class="chip-item" onclick="pickQuickChip('Ariana Grande bye')">Ariana Grande</span>
       </div>
 
-      <div id="search-results-box" class="results-card" style="display: none;"></div>
-    </div>
-
-    <!-- Mode 2: Local MP3 File -->
-    <div id="view-local" style="display: none;">
-      <label class="local-drop-card" for="mp3-file-picker">
-        <div class="local-icon">
-          <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+      <!-- Collapsible Results Dropdown -->
+      <div id="results-dropdown-box" class="results-dropdown" style="display: none;">
+        <div class="results-header-bar">
+          <span id="results-count-label">Hasil Pencarian</span>
+          <button class="results-close-btn" onclick="hideSearchResults()">✕ Tutup</button>
         </div>
-        <div class="local-title">Pilih File MP3 dari HP</div>
-        <div class="local-desc">Putar file offline langsung dari penyimpanan HP.<br>Mendukung layar mati & lirik otomatis.</div>
-        <input id="mp3-file-picker" type="file" accept="audio/*" onchange="loadLocalMP3(event)">
+        <div id="results-items-container"></div>
+      </div>
+    </div>
+
+    <!-- Local MP3 View -->
+    <div id="view-mode-local" style="display: none;">
+      <label class="local-box-view" for="local-file-selector">
+        <div class="local-box-title">📁 Pilih File MP3 dari HP</div>
+        <div class="local-box-sub">Putar offline • Layar mati aman • Lirik auto-sync</div>
+        <input id="local-file-selector" type="file" accept="audio/*" onchange="processLocalAudio(event)">
       </label>
     </div>
 
     <!-- Now Playing Card -->
     <div class="player-card">
-      <div class="track-meta">
-        <div class="track-titles">
-          <div id="player-title" class="track-title">Belum Ada Lagu Diputar</div>
-          <div id="player-artist" class="track-artist">Pilih lagu untuk memulai</div>
+      <div class="track-info-row">
+        <div id="ui-track-title" class="track-active-name">Belum Ada Lagu Diputar</div>
+        <div id="ui-track-artist" class="track-active-artist">Pilih lagu untuk memulai</div>
+      </div>
+
+      <div class="seek-wrapper">
+        <div id="ui-seek-track" class="seek-bar-track" onclick="seekPlayback(event)">
+          <div id="ui-seek-fill" class="seek-bar-fill"></div>
+        </div>
+        <div class="time-digits-row">
+          <span id="ui-time-cur">00:00</span>
+          <span id="ui-time-dur">00:00</span>
         </div>
       </div>
 
-      <!-- Wave / Progress -->
-      <div class="progress-section">
-        <div id="seek-track" class="progress-track" onclick="handleSeek(event)">
-          <div id="seek-fill" class="progress-current"></div>
-        </div>
-        <div class="time-labels">
-          <span id="time-current">00:00</span>
-          <span id="time-total">00:00</span>
-        </div>
-      </div>
-
-      <!-- Playback Controls -->
-      <div class="playback-controls">
-        <button class="icon-ctrl-btn" onclick="stepAudio(-5)" title="Mundur 5 Detik">
+      <div class="controls-row">
+        <button class="ctrl-skip-btn" onclick="jumpSeconds(-5)" title="Mundur 5 Detik">
           <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
         </button>
-        <button id="main-play-btn" class="play-pause-circle" onclick="togglePlayback()">
-          <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          <svg id="pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <button id="ui-play-toggle-btn" class="ctrl-play-btn" onclick="togglePlayPause()">
+          <svg id="icon-svg-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="icon-svg-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
-        <button class="icon-ctrl-btn" onclick="stepAudio(5)" title="Maju 5 Detik">
+        <button class="ctrl-skip-btn" onclick="jumpSeconds(5)" title="Maju 5 Detik">
           <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05.99 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
         </button>
       </div>
     </div>
 
-    <!-- Apple Music Style Karaoke Stream -->
-    <div id="lyrics-stream-box" class="lyrics-deck">
-      <div class="lyric-item" style="text-align: center; margin-top: 55px; opacity: 0.6;">
-        Lirik karaoke sinkron akan mengalir otomatis di sini...
+    <!-- Lyrics Karaoke Deck -->
+    <div id="ui-lyrics-deck" class="lyrics-container-card">
+      <div class="karaoke-line" style="text-align: center; margin-top: 50px; opacity: 0.6;">
+        Lirik karaoke sinkron akan mengalir di sini...
       </div>
     </div>
 
-    <!-- Bottom Capsule Tuning & Tools -->
-    <div class="tuning-capsule">
-      <div class="tune-col">
+    <!-- Tuning Bottom Bar -->
+    <div class="tuning-wrapper">
+      <div class="tune-subgroup">
         <span>Batas Teks:</span>
-        <button class="tune-btn-mini" onclick="tuneCharLimit(-2)">-</button>
-        <span id="char-limit-display" class="tune-val">16</span>
-        <button class="tune-btn-mini" onclick="tuneCharLimit(2)">+</button>
+        <button class="mini-tune-btn" onclick="alterCharLimit(-2)">-</button>
+        <span id="ui-char-limit" class="tune-value-tag">16</span>
+        <button class="mini-tune-btn" onclick="alterCharLimit(2)">+</button>
       </div>
 
-      <div class="tune-col">
+      <div class="tune-subgroup">
         <span>Offset:</span>
-        <button class="tune-btn-mini" onclick="tuneLyricOffset(-0.3)">-</button>
-        <span id="offset-display" class="tune-val">0.0s</span>
-        <button class="tune-btn-mini" onclick="tuneLyricOffset(0.3)">+</button>
+        <button class="mini-tune-btn" onclick="alterOffsetSec(-0.3)">-</button>
+        <span id="ui-offset-tag" class="tune-value-tag">0.0s</span>
+        <button class="mini-tune-btn" onclick="alterOffsetSec(0.3)">+</button>
       </div>
 
-      <div class="tools-pill-group">
-        <button class="tool-pill" onclick="searchCustomLyric()">🔍 Lirik</button>
-        <button class="tool-pill" onclick="pasteCustomLRC()">📝 LRC</button>
+      <div class="tools-subgroup">
+        <button class="tool-action-btn" onclick="manualLyricPrompt()">🔍 Lirik</button>
+        <button class="tool-action-btn" onclick="manualLRCPrompt()">📝 LRC</button>
       </div>
     </div>
   </div>
 
-  <!-- Audio Pipeline -->
-  <audio id="sync-keeper" loop src="quiet.wav" preload="auto"></audio>
-  <audio id="audio-engine" preload="auto"></audio>
+  <!-- Audio Hardware Hooks -->
+  <audio id="audio-silent-keeper" loop src="quiet.wav" preload="auto"></audio>
+  <audio id="audio-main-player" preload="auto"></audio>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -807,89 +742,92 @@
       }
     }
 
-    const audioEngine = document.getElementById('audio-engine');
-    const syncKeeper = document.getElementById('sync-keeper');
-    const twsMirrorTitle = document.getElementById('tws-mirror-title');
-    const twsMirrorSub = document.getElementById('tws-mirror-sub');
-    const playerTitle = document.getElementById('player-title');
-    const playerArtist = document.getElementById('player-artist');
-    const lyricsStreamBox = document.getElementById('lyrics-stream-box');
-    const playIcon = document.getElementById('play-icon');
-    const pauseIcon = document.getElementById('pause-icon');
-    const seekTrack = document.getElementById('seek-track');
-    const seekFill = document.getElementById('seek-fill');
-    const timeCurrent = document.getElementById('time-current');
-    const timeTotal = document.getElementById('time-total');
-    const searchResultsBox = document.getElementById('search-results-box');
+    const mainPlayer = document.getElementById('audio-main-player');
+    const silentKeeper = document.getElementById('audio-silent-keeper');
+    const twsDisplayText = document.getElementById('tws-display-text');
+    const twsDisplaySub = document.getElementById('tws-display-sub');
+    const uiTrackTitle = document.getElementById('ui-track-title');
+    const uiTrackArtist = document.getElementById('ui-track-artist');
+    const uiLyricsDeck = document.getElementById('ui-lyrics-deck');
+    const iconSvgPlay = document.getElementById('icon-svg-play');
+    const iconSvgPause = document.getElementById('icon-svg-pause');
+    const uiSeekTrack = document.getElementById('ui-seek-track');
+    const uiSeekFill = document.getElementById('ui-seek-fill');
+    const uiTimeCur = document.getElementById('ui-time-cur');
+    const uiTimeDur = document.getElementById('ui-time-dur');
+    const resultsDropdownBox = document.getElementById('results-dropdown-box');
+    const resultsItemsContainer = document.getElementById('results-items-container');
+    const resultsCountLabel = document.getElementById('results-count-label');
 
     let currentMode = 'stream';
-    let activeTrack = { id: "", title: "", artist: "" };
-    let lyricsArray = [];
-    let currentLineIndex = -1;
-    let currentChunkIndex = -1;
-    let chunksQueue = [];
-    let chunkCycleTimer = null;
-    let lyricSyncLoop = null;
+    let currentSongMeta = { id: "", title: "", artist: "" };
+    let parsedLyricsList = [];
+    let currentLineIdx = -1;
+    let currentChunkIdx = -1;
+    let activeChunks = [];
+    let chunkCycleInterval = null;
+    let syncCheckTimer = null;
 
-    let charLimit = 16;
-    let lyricOffsetSec = 0.0;
+    let maxCharLimit = 16;
+    let syncOffsetSeconds = 0.0;
 
-    function switchMode(mode) {
+    function switchPlayerMode(mode) {
       currentMode = mode;
-      document.getElementById('nav-stream').classList.toggle('active', mode === 'stream');
-      document.getElementById('nav-local').classList.toggle('active', mode === 'local');
-      document.getElementById('view-stream').style.display = mode === 'stream' ? 'flex' : 'none';
-      document.getElementById('view-local').style.display = mode === 'local' ? 'block' : 'none';
+      document.getElementById('nav-btn-stream').classList.toggle('active', mode === 'stream');
+      document.getElementById('nav-btn-local').classList.toggle('active', mode === 'local');
+      document.getElementById('view-mode-stream').style.display = mode === 'stream' ? 'flex' : 'none';
+      document.getElementById('view-mode-local').style.display = mode === 'local' ? 'block' : 'none';
     }
 
-    function tuneCharLimit(delta) {
-      charLimit = Math.max(10, Math.min(26, charLimit + delta));
-      document.getElementById('char-limit-display').innerText = charLimit;
+    function alterCharLimit(diff) {
+      maxCharLimit = Math.max(10, Math.min(26, maxCharLimit + diff));
+      document.getElementById('ui-char-limit').innerText = maxCharLimit;
     }
 
-    function tuneLyricOffset(delta) {
-      lyricOffsetSec = Math.round((lyricOffsetSec + delta) * 10) / 10;
-      document.getElementById('offset-display').innerText = (lyricOffsetSec > 0 ? '+' : '') + lyricOffsetSec + 's';
+    function alterOffsetSec(diff) {
+      syncOffsetSeconds = Math.round((syncOffsetSeconds + diff) * 10) / 10;
+      document.getElementById('ui-offset-tag').innerText = (syncOffsetSeconds > 0 ? '+' : '') + syncOffsetSeconds + 's';
     }
 
-    function resetLyricState() {
-      lyricsArray = [];
-      currentLineIndex = -1;
-      currentChunkIndex = -1;
-      chunksQueue = [];
-      if (chunkCycleTimer) clearInterval(chunkCycleTimer);
-      if (lyricSyncLoop) clearInterval(lyricSyncLoop);
-      lyricsStreamBox.innerHTML = '<div class="lyric-item" style="text-align:center; margin-top:55px; opacity:0.6;">Memuat lirik sinkron...</div>';
-      transmitBluetoothTitle("♪ Siap Memutar ♪");
+    function clearLyricState() {
+      parsedLyricsList = [];
+      currentLineIdx = -1;
+      currentChunkIdx = -1;
+      activeChunks = [];
+      if (chunkCycleInterval) clearInterval(chunkCycleInterval);
+      if (syncCheckTimer) clearInterval(syncCheckTimer);
+      uiLyricsDeck.innerHTML = '<div class="karaoke-line" style="text-align:center; margin-top:50px; opacity:0.6;">Memuat lirik sinkron...</div>';
+      pushBluetoothMetadata("♪ Siap Memutar ♪");
     }
 
-    function smartChunk(text, limit) {
+    function sliceIntoChunks(text, limit) {
       if (!text || text.length <= limit) return [text || ""];
       const words = text.split(/\s+/);
       const chunks = [];
-      let buf = "";
+      let temp = "";
       for (const w of words) {
-        if ((buf ? buf + " " + w : w).length <= limit) {
-          buf = buf ? buf + " " + w : w;
+        if ((temp ? temp + " " + w : w).length <= limit) {
+          temp = temp ? temp + " " + w : w;
         } else {
-          if (buf) chunks.push(buf);
-          buf = w;
+          if (temp) chunks.push(temp);
+          temp = w;
         }
       }
-      if (buf) chunks.push(buf);
+      if (temp) chunks.push(temp);
       return chunks.length > 0 ? chunks : [text.slice(0, limit)];
     }
 
-    // SEARCH MUSIC
-    async function executeSearch() {
-      const q = document.getElementById('search-query').value.trim();
+    // SEARCH
+    async function triggerSearch() {
+      const q = document.getElementById('input-search').value.trim();
       if (!q) return;
 
-      const btn = document.getElementById('search-action-btn');
-      btn.innerText = "Mencari...";
+      const btn = document.getElementById('btn-search-exec');
+      btn.innerText = "...";
       btn.disabled = true;
-      searchResultsBox.style.display = "flex";
-      searchResultsBox.innerHTML = '<div style="text-align:center; padding:18px; font-size:12px; color:var(--muted);">Mencari di YouTube & Database Musik...</div>';
+      resultsDropdownBox.style.display = "flex";
+      resultsCountLabel.innerText = "Mencari lagu...";
+      resultsItemsContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:12px; color:var(--muted);">Menghubungkan ke YouTube & Database Musik...</div>';
 
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
@@ -898,118 +836,127 @@
         btn.disabled = false;
 
         if (!data.results || data.results.length === 0) {
-          searchResultsBox.innerHTML = '<div style="text-align:center; padding:18px; font-size:12px; color:#f85149;">Lagu tidak ditemukan! Coba judul lain.</div>';
+          resultsCountLabel.innerText = "Hasil (0)";
+          resultsItemsContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:12px; color:#f85149;">Lagu tidak ditemukan! Coba judul lain.</div>';
           return;
         }
 
+        resultsCountLabel.innerText = `Ditemukan ${data.results.length} Lagu`;
         renderSearchResults(data.results);
       } catch (err) {
         btn.innerText = "Cari";
         btn.disabled = false;
-        searchResultsBox.innerHTML = `<div style="text-align:center; padding:18px; font-size:12px; color:#f85149;">Gagal mencari: ${err.message}</div>`;
+        resultsItemsContainer.innerHTML = `<div style="text-align:center; padding:15px; font-size:12px; color:#f85149;">Gagal mencari: ${err.message}</div>`;
       }
     }
 
-    function quickSelect(q) {
-      document.getElementById('search-query').value = q;
-      executeSearch();
+    function pickQuickChip(q) {
+      document.getElementById('input-search').value = q;
+      triggerSearch();
+    }
+
+    function hideSearchResults() {
+      resultsDropdownBox.style.display = "none";
     }
 
     function renderSearchResults(items) {
-      searchResultsBox.innerHTML = "";
+      resultsItemsContainer.innerHTML = "";
       items.forEach(song => {
         const row = document.createElement('div');
-        row.className = 'result-row';
+        row.className = 'result-item-row';
         row.innerHTML = `
-          <img class="result-cover" src="${song.thumbnail}" onerror="this.src='icon-192.png'">
-          <div class="result-details">
-            <div class="result-name">${song.title}</div>
-            <div class="result-sub">
+          <img class="result-item-thumb" src="${song.thumbnail}" onerror="this.src='icon-192.png'">
+          <div class="result-item-info">
+            <div class="result-item-title">${song.title}</div>
+            <div class="result-item-meta">
               <span>${song.channel || 'Artis'}</span>
               <span>•</span>
               <span>${song.duration_str}</span>
             </div>
           </div>
-          <div class="row-play-btn">
+          <div class="result-item-play">
             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           </div>
         `;
-        row.onclick = () => playStreamTrack(song);
-        searchResultsBox.appendChild(row);
+        row.onclick = () => selectAndPlayOnlineTrack(song);
+        resultsItemsContainer.appendChild(row);
       });
     }
 
-    async function playStreamTrack(song) {
-      resetLyricState();
-      activeTrack = {
+    async function selectAndPlayOnlineTrack(song) {
+      // Auto-collapse search dropdown so player & lyrics are immediately visible!
+      hideSearchResults();
+      clearLyricState();
+
+      currentSongMeta = {
         id: song.id,
         title: song.clean_title || song.title,
         artist: song.channel || "Musik"
       };
 
-      playerTitle.innerText = activeTrack.title;
-      playerArtist.innerText = activeTrack.artist;
-      twsMirrorTitle.innerText = "Menyiapkan audio...";
-      twsMirrorSub.innerText = activeTrack.title;
+      uiTrackTitle.innerText = currentSongMeta.title;
+      uiTrackArtist.innerText = currentSongMeta.artist;
+      twsDisplayText.innerText = "Menyiapkan audio...";
+      twsDisplaySub.innerText = currentSongMeta.title;
 
-      fetchLyricsService(activeTrack.title);
+      requestLyricsAsync(currentSongMeta.title);
 
-      audioEngine.src = `/api/audio?id=${song.id}`;
-      audioEngine.load();
-      audioEngine.play().then(() => {
-        syncKeeper.play().catch(() => {});
-        setPlayState(true);
-        startSyncTracker();
-        bindMediaSession();
+      mainPlayer.src = `/api/audio?id=${song.id}`;
+      mainPlayer.load();
+      mainPlayer.play().then(() => {
+        silentKeeper.play().catch(() => {});
+        updatePlayStateUI(true);
+        startLyricSyncLoop();
+        setupMediaSessionHandlers();
       }).catch(err => {
-        console.warn("Autoplay block:", err);
+        console.warn("Autoplay notice:", err);
       });
     }
 
-    // LYRICS SERVICE
-    async function fetchLyricsService(query) {
+    // LYRICS FETCH
+    async function requestLyricsAsync(query) {
       try {
         const res = await fetch(`/api/lyrics?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         if (data.found && data.lines && data.lines.length > 0) {
-          lyricsArray = data.lines;
-          renderLyricsDisplay(lyricsArray);
+          parsedLyricsList = data.lines;
+          renderKaraokeLines(parsedLyricsList);
         } else {
-          lyricsArray = [];
-          lyricsStreamBox.innerHTML = `
-            <div class="lyric-item" style="text-align:center; margin-top:50px; opacity:0.8;">
+          parsedLyricsList = [];
+          uiLyricsDeck.innerHTML = `
+            <div class="karaoke-line" style="text-align:center; margin-top:45px; opacity:0.8;">
               Lirik otomatis tidak ditemukan.<br>
-              <button class="tool-pill" style="margin-top:10px; font-size:12px; padding:6px 12px;" onclick="searchCustomLyric()">🔍 Cari Lirik Manual</button>
+              <button class="tool-action-btn" style="margin-top:8px; font-size:11.5px; padding:5px 12px;" onclick="manualLyricPrompt()">🔍 Cari dengan Kata Kunci Lain</button>
             </div>
           `;
         }
       } catch (err) {
-        console.error("Lyrics fetch error:", err);
+        console.error("Lyrics error:", err);
       }
     }
 
-    function searchCustomLyric() {
-      const q = prompt("Ketik nama artis & lagu untuk cari lirik:", activeTrack.title);
+    function manualLyricPrompt() {
+      const q = prompt("Ketik nama artis & lagu:", currentSongMeta.title);
       if (q) {
-        resetLyricState();
-        fetchLyricsService(q);
+        clearLyricState();
+        requestLyricsAsync(q);
       }
     }
 
-    function pasteCustomLRC() {
-      const lrc = prompt("Tempel teks lirik LRC format [mm:ss.xx]:");
+    function manualLRCPrompt() {
+      const lrc = prompt("Tempel teks lirik LRC ([mm:ss.xx] teks):");
       if (lrc) {
-        resetLyricState();
-        lyricsArray = parseRawLRC(lrc);
-        if (lyricsArray.length > 0) {
-          renderLyricsDisplay(lyricsArray);
+        clearLyricState();
+        parsedLyricsList = parseLRCString(lrc);
+        if (parsedLyricsList.length > 0) {
+          renderKaraokeLines(parsedLyricsList);
         } else {
-          alert("Format LRC tidak terbaca!");
+          alert("Format LRC tidak valid!");
         }
       }
     }
 
-    function parseRawLRC(lrcText) {
+    function parseLRCString(lrcText) {
       const lines = lrcText.split('\n');
       const out = [];
       const rgx = /\[(\d{2}):(\d{2})\.?(\d{2,3})?\]/;
@@ -1028,184 +975,190 @@
     }
 
     // LOCAL MP3
-    function loadLocalMP3(e) {
+    function processLocalAudio(e) {
       const file = e.target.files[0];
       if (!file) return;
 
-      resetLyricState();
+      clearLyricState();
       const cleanName = file.name.replace(/\.[a-zA-Z0-9]+$/, '').replace(/[-_]/g, ' ');
-      activeTrack = { id: "", title: cleanName, artist: "File HP" };
+      currentSongMeta = { id: "", title: cleanName, artist: "File HP" };
 
-      playerTitle.innerText = activeTrack.title;
-      playerArtist.innerText = activeTrack.artist;
-      twsMirrorTitle.innerText = "Memuat MP3...";
-      twsMirrorSub.innerText = activeTrack.title;
+      uiTrackTitle.innerText = currentSongMeta.title;
+      uiTrackArtist.innerText = currentSongMeta.artist;
+      twsDisplayText.innerText = "Memuat MP3...";
+      twsDisplaySub.innerText = currentSongMeta.title;
 
-      audioEngine.src = URL.createObjectURL(file);
-      fetchLyricsService(cleanName);
+      mainPlayer.src = URL.createObjectURL(file);
+      requestLyricsAsync(cleanName);
 
-      audioEngine.play().then(() => {
-        syncKeeper.play().catch(() => {});
-        setPlayState(true);
-        startSyncTracker();
-        bindMediaSession();
+      mainPlayer.play().then(() => {
+        silentKeeper.play().catch(() => {});
+        updatePlayStateUI(true);
+        startLyricSyncLoop();
+        setupMediaSessionHandlers();
       });
     }
 
-    function renderLyricsDisplay(lines) {
-      lyricsStreamBox.innerHTML = "";
+    function renderKaraokeLines(lines) {
+      uiLyricsDeck.innerHTML = "";
       lines.forEach((item, idx) => {
         const div = document.createElement('div');
-        div.className = 'lyric-item';
-        div.id = `line-${idx}`;
+        div.className = 'karaoke-line';
+        div.id = `lyric-line-${idx}`;
         div.innerText = item.text;
         div.onclick = () => {
-          audioEngine.currentTime = Math.max(0, item.time - 0.2);
+          mainPlayer.currentTime = Math.max(0, item.time - 0.2);
         };
-        lyricsStreamBox.appendChild(div);
+        uiLyricsDeck.appendChild(div);
       });
     }
 
-    function transmitBluetoothTitle(chunk) {
-      twsMirrorTitle.innerText = chunk;
-      twsMirrorSub.innerText = activeTrack.title;
+    function pushBluetoothMetadata(chunk) {
+      twsDisplayText.innerText = chunk;
+      twsDisplaySub.innerText = currentSongMeta.title;
 
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: chunk,
-          artist: activeTrack.artist || "TWS Player",
-          album: activeTrack.title
+          artist: currentSongMeta.artist || "TWS Player",
+          album: currentSongMeta.title
         });
-        navigator.mediaSession.playbackState = audioEngine.paused ? "paused" : "playing";
+        navigator.mediaSession.playbackState = mainPlayer.paused ? "paused" : "playing";
       }
     }
 
-    function bindMediaSession() {
+    function setupMediaSessionHandlers() {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => {
-          audioEngine.play();
-          setPlayState(true);
+          mainPlayer.play();
+          updatePlayStateUI(true);
         });
         navigator.mediaSession.setActionHandler('pause', () => {
-          audioEngine.pause();
-          setPlayState(false);
+          mainPlayer.pause();
+          updatePlayStateUI(false);
         });
         navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.seekTime) audioEngine.currentTime = details.seekTime;
+          if (details.seekTime) mainPlayer.currentTime = details.seekTime;
         });
-        navigator.mediaSession.setActionHandler('seekforward', () => stepAudio(5));
-        navigator.mediaSession.setActionHandler('seekbackward', () => stepAudio(-5));
+        navigator.mediaSession.setActionHandler('seekforward', () => jumpSeconds(5));
+        navigator.mediaSession.setActionHandler('seekbackward', () => jumpSeconds(-5));
       }
     }
 
-    function togglePlayback() {
-      if (audioEngine.paused) {
-        audioEngine.play();
-        syncKeeper.play().catch(() => {});
-        setPlayState(true);
-        startSyncTracker();
+    function togglePlayPause() {
+      if (mainPlayer.paused) {
+        mainPlayer.play();
+        silentKeeper.play().catch(() => {});
+        updatePlayStateUI(true);
+        startLyricSyncLoop();
       } else {
-        audioEngine.pause();
-        setPlayState(false);
-        stopSyncTracker();
+        mainPlayer.pause();
+        updatePlayStateUI(false);
+        stopLyricSyncLoop();
       }
     }
 
-    function setPlayState(isPlaying) {
-      playIcon.style.display = isPlaying ? "none" : "block";
-      pauseIcon.style.display = isPlaying ? "block" : "none";
+    function updatePlayStateUI(isPlaying) {
+      iconSvgPlay.style.display = isPlaying ? "none" : "block";
+      iconSvgPause.style.display = isPlaying ? "block" : "none";
     }
 
-    function stepAudio(sec) {
-      audioEngine.currentTime = Math.max(0, Math.min(audioEngine.duration || 0, audioEngine.currentTime + sec));
+    function jumpSeconds(sec) {
+      mainPlayer.currentTime = Math.max(0, Math.min(mainPlayer.duration || 0, mainPlayer.currentTime + sec));
     }
 
-    function handleSeek(e) {
-      const rect = seekTrack.getBoundingClientRect();
+    function seekPlayback(e) {
+      const rect = uiSeekTrack.getBoundingClientRect();
       const pct = (e.clientX - rect.left) / rect.width;
-      if (audioEngine.duration) {
-        audioEngine.currentTime = pct * audioEngine.duration;
+      if (mainPlayer.duration) {
+        mainPlayer.currentTime = pct * mainPlayer.duration;
       }
     }
 
-    function formatDuration(s) {
+    function fmtTime(s) {
       if (isNaN(s)) return "00:00";
       const m = Math.floor(s / 60);
       const sec = Math.floor(s % 60);
       return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
     }
 
-    audioEngine.ontimeupdate = () => {
-      timeCurrent.innerText = formatDuration(audioEngine.currentTime);
-      if (audioEngine.duration) {
-        timeTotal.innerText = formatDuration(audioEngine.duration);
-        seekFill.style.width = `${(audioEngine.currentTime / audioEngine.duration) * 100}%`;
+    mainPlayer.ontimeupdate = () => {
+      uiTimeCur.innerText = fmtTime(mainPlayer.currentTime);
+      if (mainPlayer.duration) {
+        uiTimeDur.innerText = fmtTime(mainPlayer.duration);
+        uiSeekFill.style.width = `${(mainPlayer.currentTime / mainPlayer.duration) * 100}%`;
       }
     };
 
-    audioEngine.onplay = () => setPlayState(true);
-    audioEngine.onpause = () => setPlayState(false);
+    mainPlayer.onplay = () => updatePlayStateUI(true);
+    mainPlayer.onpause = () => updatePlayStateUI(false);
 
-    function startSyncTracker() {
-      if (lyricSyncLoop) clearInterval(lyricSyncLoop);
-      lyricSyncLoop = setInterval(evaluateLyricSync, 140);
+    function startLyricSyncLoop() {
+      if (syncCheckTimer) clearInterval(syncCheckTimer);
+      syncCheckTimer = setInterval(checkLyricTiming, 140);
     }
 
-    function stopSyncTracker() {
-      if (lyricSyncLoop) clearInterval(lyricSyncLoop);
-      clearInterval(chunkCycleTimer);
+    function stopLyricSyncLoop() {
+      if (syncCheckTimer) clearInterval(syncCheckTimer);
+      clearInterval(chunkCycleInterval);
     }
 
-    function evaluateLyricSync() {
-      if (lyricsArray.length === 0) return;
+    function checkLyricTiming() {
+      if (parsedLyricsList.length === 0) return;
 
-      const cur = audioEngine.currentTime + lyricOffsetSec;
+      const cur = mainPlayer.currentTime + syncOffsetSeconds;
 
-      let matchedIndex = -1;
-      for (let i = 0; i < lyricsArray.length; i++) {
-        if (cur >= lyricsArray[i].time) {
-          matchedIndex = i;
+      let matchedIdx = -1;
+      for (let i = 0; i < parsedLyricsList.length; i++) {
+        if (cur >= parsedLyricsList[i].time) {
+          matchedIdx = i;
         } else {
           break;
         }
       }
 
-      if (matchedIndex !== -1 && matchedIndex !== currentLineIndex) {
-        currentLineIndex = matchedIndex;
-        const currentLine = lyricsArray[currentLineIndex];
+      if (matchedIdx !== -1 && matchedIdx !== currentLineIdx) {
+        currentLineIdx = matchedIdx;
+        const currentLine = parsedLyricsList[currentLineIdx];
 
-        document.querySelectorAll('.lyric-item').forEach(el => el.classList.remove('current-line'));
-        const activeLineEl = document.getElementById(`line-${currentLineIndex}`);
+        document.querySelectorAll('.karaoke-line').forEach(el => el.classList.remove('active-lyric'));
+        const activeLineEl = document.getElementById(`lyric-line-${currentLineIdx}`);
         if (activeLineEl) {
-          activeLineEl.classList.add('current-line');
-          activeLineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          activeLineEl.classList.add('active-lyric');
+          // Smoothly scroll ONLY within the lyrics container without jerking the window viewport!
+          const deckHeight = uiLyricsDeck.clientHeight;
+          const targetOffset = activeLineEl.offsetTop - (deckHeight / 2) + (activeLineEl.clientHeight / 2);
+          uiLyricsDeck.scrollTo({
+            top: Math.max(0, targetOffset),
+            behavior: 'smooth'
+          });
         }
 
-        clearInterval(chunkCycleTimer);
-        chunksQueue = smartChunk(currentLine.text, charLimit);
-        currentChunkIndex = 0;
+        clearInterval(chunkCycleInterval);
+        activeChunks = sliceIntoChunks(currentLine.text, maxCharLimit);
+        currentChunkIdx = 0;
 
-        const nextTime = lyricsArray[currentLineIndex + 1] ? lyricsArray[currentLineIndex + 1].time : (cur + 3.5);
-        const lineSpan = Math.max(1.2, nextTime - currentLine.time);
-        const chunkIntervalMs = Math.max(700, (lineSpan * 1000) / chunksQueue.length);
+        const nextTime = parsedLyricsList[currentLineIdx + 1] ? parsedLyricsList[currentLineIdx + 1].time : (cur + 3.5);
+        const lineDuration = Math.max(1.2, nextTime - currentLine.time);
+        const chunkIntervalMs = Math.max(700, (lineDuration * 1000) / activeChunks.length);
 
-        transmitBluetoothTitle(chunksQueue[0]);
+        pushBluetoothMetadata(activeChunks[0]);
 
-        if (chunksQueue.length > 1) {
-          chunkCycleTimer = setInterval(() => {
-            currentChunkIndex++;
-            if (currentChunkIndex < chunksQueue.length) {
-              transmitBluetoothTitle(chunksQueue[currentChunkIndex]);
+        if (activeChunks.length > 1) {
+          chunkCycleInterval = setInterval(() => {
+            currentChunkIdx++;
+            if (currentChunkIdx < activeChunks.length) {
+              pushBluetoothMetadata(activeChunks[currentChunkIdx]);
             } else {
-              clearInterval(chunkCycleTimer);
+              clearInterval(chunkCycleInterval);
             }
           }, chunkIntervalMs);
         }
       }
     }
 
-    document.getElementById('search-query').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') executeSearch();
+    document.getElementById('input-search').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') triggerSearch();
     });
   </script>
 </body>
