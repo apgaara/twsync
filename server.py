@@ -295,13 +295,13 @@ class TWSLyricRequestHandler(SimpleHTTPRequestHandler):
             if needs_dl:
                 try:
                     ydl_opts = {
-                        'format': 'bestaudio[ext=m4a]/bestaudio/best',
+                        'format': 'bestaudio/best',
                         'outtmpl': os.path.join(CACHE_DIR, f"{vid_id}.%(ext)s"),
                         'quiet': True,
                         'noplaylist': True,
                         'extractor_args': {
                             'youtube': {
-                                'player_client': ['android', 'ios', 'web'],
+                                'player_client': ['android'],
                             }
                         }
                     }

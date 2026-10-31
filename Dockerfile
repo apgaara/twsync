@@ -1,9 +1,10 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# Install system dependencies (ffmpeg for yt-dlp)
+# Install system dependencies (ffmpeg & nodejs for yt-dlp JS runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     ca-certificates \
+    nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
