@@ -729,7 +729,7 @@
 
   <!-- Audio Hardware Hooks -->
   <audio id="audio-silent-keeper" loop src="quiet.wav" preload="auto"></audio>
-  <audio id="audio-main-player" preload="auto"></audio>
+  <audio id="audio-main-player" preload="auto" playsinline></audio>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -908,7 +908,8 @@
       currentSongMeta = {
         id: song.id,
         title: song.clean_title || song.title,
-        artist: song.channel || "Musik"
+        artist: song.channel || "Musik",
+        thumbnail: song.thumbnail || ""
       };
 
       uiTrackTitle.innerText = currentSongMeta.title;
@@ -925,7 +926,6 @@
       mainPlayer.src = `/api/audio?id=${song.id}`;
       mainPlayer.load();
       mainPlayer.play().then(() => {
-        silentKeeper.play().catch(() => {});
         updatePlayStateUI(true);
         startLyricSyncLoop();
         setupMediaSessionHandlers();
@@ -1014,7 +1014,6 @@
       requestLyricsAsync(cleanName);
 
       mainPlayer.play().then(() => {
-        silentKeeper.play().catch(() => {});
         updatePlayStateUI(true);
         startLyricSyncLoop();
         setupMediaSessionHandlers();
@@ -1040,12 +1039,30 @@
       twsDisplaySub.innerText = currentSongMeta.title || "TWSync by gars";
 
       if ('mediaSession' in navigator) {
+        const artList = [];
+        if (currentSongMeta.thumbnail) {
+          artList.push({ src: currentSongMeta.thumbnail, sizes: '512x512', type: 'image/jpeg' });
+        }
+        artList.push({ src: '/icon-512.png', sizes: '512x512', type: 'image/png' });
+        artList.push({ src: '/icon-192.png', sizes: '192x192', type: 'image/png' });
+
         navigator.mediaSession.metadata = new MediaMetadata({
           title: chunk,
           artist: currentSongMeta.artist ? (currentSongMeta.artist + " • TWSync") : "TWSync by gars",
-          album: "TWSync by gars"
+          album: "TWSync by gars",
+          artwork: artList
         });
         navigator.mediaSession.playbackState = mainPlayer.paused ? "paused" : "playing";
+
+        if ('setPositionState' in navigator.mediaSession && mainPlayer.duration && !isNaN(mainPlayer.duration)) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: mainPlayer.duration,
+              playbackRate: mainPlayer.playbackRate || 1,
+              position: Math.min(mainPlayer.currentTime, mainPlayer.duration)
+            });
+          } catch (e) {}
+        }
       }
     }
 
@@ -1059,18 +1076,25 @@
           mainPlayer.pause();
           updatePlayStateUI(false);
         });
+        navigator.mediaSession.setActionHandler('stop', () => {
+          mainPlayer.pause();
+          updatePlayStateUI(false);
+        });
         navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.seekTime) mainPlayer.currentTime = details.seekTime;
+          if (details.seekTime !== undefined && details.seekTime !== null) {
+            mainPlayer.currentTime = details.seekTime;
+          }
         });
         navigator.mediaSession.setActionHandler('seekforward', () => jumpSeconds(5));
         navigator.mediaSession.setActionHandler('seekbackward', () => jumpSeconds(-5));
+        navigator.mediaSession.setActionHandler('previoustrack', () => jumpSeconds(-10));
+        navigator.mediaSession.setActionHandler('nexttrack', () => jumpSeconds(10));
       }
     }
 
     function togglePlayPause() {
       if (mainPlayer.paused) {
         mainPlayer.play();
-        silentKeeper.play().catch(() => {});
         updatePlayStateUI(true);
         startLyricSyncLoop();
       } else {
@@ -1108,6 +1132,10 @@
       uiTimeCur.innerText = fmtTime(mainPlayer.currentTime);
       if (mainPlayer.duration) {
         uiTimeDur.innerText = fmtTime(mainPlayer.duration);
+        uiSeekFill.style.width = `${(mainPlayer.currentTime / mainPlayer.duration) * 100}%`;
+      }
+      checkLyricTiming();
+    };
         uiSeekFill.style.width = `${(mainPlayer.currentTime / mainPlayer.duration) * 100}%`;
       }
     };
