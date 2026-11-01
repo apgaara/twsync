@@ -9,6 +9,7 @@ import urllib.parse
 import threading
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import yt_dlp
+import requests
 import syncedlyrics
 from syncedlyrics.providers import NetEase
 
