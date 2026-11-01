@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tws-livesync-v17-controls-fix';
+const CACHE_NAME = 'tws-livesync-v18-heartbeat-opt';
 const ASSETS = [
   '/',
   '/index.html',

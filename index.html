@@ -733,7 +733,7 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=17').catch(console.error);
+      navigator.serviceWorker.register('/sw.js?v=18').catch(console.error);
     }
 
     let deferredPrompt;
@@ -1048,26 +1048,38 @@
       }
     }
 
-    function pushBluetoothMetadata(chunk) {
+    const STATIC_ARTWORK = [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+    ];
+
+    let lastPushedChunk = "";
+    let lastPushTime = 0;
+
+    function pushBluetoothMetadata(chunk, force = false) {
       twsDisplayText.innerText = chunk;
       twsDisplaySub.innerText = currentSongMeta.title || "TWSync by gars";
 
-      if ('mediaSession' in navigator) {
-        const artList = [];
-        if (currentSongMeta.thumbnail) {
-          artList.push({ src: currentSongMeta.thumbnail, sizes: '512x512', type: 'image/jpeg' });
-        }
-        artList.push({ src: '/icon-512.png', sizes: '512x512', type: 'image/png' });
-        artList.push({ src: '/icon-192.png', sizes: '192x192', type: 'image/png' });
+      const now = Date.now();
+      if (!force && chunk === lastPushedChunk && (now - lastPushTime < 2500)) {
+        return;
+      }
+      lastPushedChunk = chunk;
+      lastPushTime = now;
 
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: chunk,
-          artist: currentSongMeta.artist ? (currentSongMeta.artist + " • TWSync") : "TWSync by gars",
-          album: "TWSync by gars",
-          artwork: artList
-        });
-        navigator.mediaSession.playbackState = mainPlayer.paused ? "paused" : "playing";
-        updateMediaPositionState();
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: chunk,
+            artist: currentSongMeta.artist ? (currentSongMeta.artist + " • TWSync") : "TWSync by gars",
+            album: "TWSync by gars",
+            artwork: STATIC_ARTWORK
+          });
+          navigator.mediaSession.playbackState = mainPlayer.paused ? "paused" : "playing";
+          updateMediaPositionState();
+        } catch (e) {
+          console.warn("MediaSession push error:", e);
+        }
       }
     }
 
@@ -1188,9 +1200,32 @@
       pushBluetoothMetadata("♪ Selesai • TWSync ♪");
     };
 
+    mainPlayer.onerror = () => {
+      console.warn("Audio stream interrupted, auto-recovering...");
+      if (currentSongMeta.id && !mainPlayer.paused) {
+        const curTime = mainPlayer.currentTime;
+        mainPlayer.src = `/api/audio?id=${currentSongMeta.id}`;
+        mainPlayer.load();
+        mainPlayer.currentTime = curTime;
+        mainPlayer.play().catch(() => {});
+      }
+    };
+
+    let heartbeatTimer = null;
+
     function startLyricSyncLoop() {
       if (syncCheckTimer) clearInterval(syncCheckTimer);
       syncCheckTimer = setInterval(checkLyricTiming, 140);
+
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(() => {
+        if (!mainPlayer.paused && activeChunks.length > 0) {
+          const currentText = activeChunks[currentChunkIdx] || activeChunks[0];
+          if (currentText) {
+            pushBluetoothMetadata(currentText, true);
+          }
+        }
+      }, 3000);
     }
 
     function stopLyricSyncLoop() {
@@ -1201,6 +1236,10 @@
       if (chunkCycleInterval) {
         clearInterval(chunkCycleInterval);
         chunkCycleInterval = null;
+      }
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
       }
     }
 
@@ -1242,8 +1281,8 @@
         const nextTime = parsedLyricsList[currentLineIdx + 1] ? parsedLyricsList[currentLineIdx + 1].time : (cur + 3.5);
         const lineDuration = Math.max(1.2, nextTime - currentLine.time);
         
-        // Chunk pacing: between 800ms and 1500ms max per chunk so text never lags behind
-        const chunkIntervalMs = Math.min(1500, Math.max(800, (Math.min(lineDuration, 2.2 * activeChunks.length) * 1000) / activeChunks.length));
+        // Chunk pacing: between 1100ms and 2200ms to protect JL7012 Bluetooth buffer
+        const chunkIntervalMs = Math.min(2200, Math.max(1100, (Math.min(lineDuration, 2.5 * activeChunks.length) * 1000) / activeChunks.length));
 
         pushBluetoothMetadata(activeChunks[0]);
 
