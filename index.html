@@ -582,6 +582,167 @@
     .local-box-title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
     .local-box-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
     input[type="file"] { display: none; }
+
+    /* Addons Bar (Bass, Timer, Style) */
+    .player-addons-bar {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 12px;
+      width: 100%;
+    }
+    .addon-btn {
+      background: var(--panel-2);
+      border: 1px solid var(--line-2);
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 5px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+    .addon-btn.active {
+      background: rgba(58, 155, 255, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Card Inner Box for Custom Text & History */
+    .card-inner-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .box-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .box-desc {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .custom-textarea {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--line-2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      resize: vertical;
+      min-height: 70px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .custom-textarea:focus {
+      border-color: var(--accent);
+    }
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--ink-2);
+    }
+    .custom-select {
+      background: var(--panel-2);
+      border: 1px solid var(--line-2);
+      color: var(--ink);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      outline: none;
+    }
+    .custom-btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-primary-action {
+      flex: 1;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-secondary-action {
+      flex: 1;
+      background: #f85149;
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* History list */
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mini-btn-clear {
+      background: transparent;
+      border: 1px solid var(--line-2);
+      color: var(--muted);
+      font-size: 10.5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .history-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: var(--panel-2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .history-item-row:hover, .history-item-row:active {
+      background: var(--panel-3);
+    }
+    .history-item-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px;
+    }
+    .history-item-artist {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -605,9 +766,17 @@
         <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
         Musik Online
       </div>
+      <div id="nav-btn-custom" class="nav-pill-item" onclick="switchPlayerMode('custom')">
+        <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+        Pesan Case
+      </div>
+      <div id="nav-btn-history" class="nav-pill-item" onclick="switchPlayerMode('history')">
+        <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        Riwayat
+      </div>
       <div id="nav-btn-local" class="nav-pill-item" onclick="switchPlayerMode('local')">
         <svg style="width:13px;height:13px;fill:currentColor" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
-        File MP3 HP
+        File MP3
       </div>
     </div>
 
@@ -630,11 +799,12 @@
 
       <div class="chips-container">
         <span class="chip-item" onclick="pickQuickChip('Bernadya Satu Bulan')">Bernadya</span>
-        <span class="chip-item" onclick="pickQuickChip('Sal Priadi Gala Bunga Matahari')">Sal Priadi</span>
         <span class="chip-item" onclick="pickQuickChip('Nadin Amizah Rayuan Perempuan Gila')">Nadin Amizah</span>
-        <span class="chip-item" onclick="pickQuickChip('Avenged Sevenfold Buried Alive')">A7X</span>
+        <span class="chip-item" onclick="pickQuickChip('Avenged Sevenfold Buried Alive')">Avenged Sevenfold</span>
+        <span class="chip-item" onclick="pickQuickChip('Sal Priadi Gala Bunga Matahari')">Sal Priadi</span>
+        <span class="chip-item" onclick="pickQuickChip('Hindia Evaluasi')">Hindia</span>
         <span class="chip-item" onclick="pickQuickChip('Sheila On 7 Dan')">Sheila On 7</span>
-        <span class="chip-item" onclick="pickQuickChip('Ariana Grande bye')">Ariana Grande</span>
+        <span class="chip-item" onclick="pickQuickChip('Linkin Park In The End')">Linkin Park</span>
       </div>
 
       <!-- Collapsible Results Dropdown -->
@@ -644,6 +814,53 @@
           <button class="results-close-btn" onclick="hideSearchResults()">✕ Tutup</button>
         </div>
         <div id="results-items-container"></div>
+      </div>
+    </div>
+
+    <!-- Custom Text to Case View -->
+    <div id="view-mode-custom" style="display: none;">
+      <div class="card-inner-box">
+        <div class="box-title">Kirim Pesan ke Layar Case TWS</div>
+        <div class="box-desc">Ketik teks untuk ditampilkan dan berjalan terus-menerus di layar case TWS kamu.</div>
+        
+        <textarea id="input-custom-text" class="custom-textarea" placeholder="Contoh: I LOVE YOU DEK atau SEMANGAT KERJA YA"></textarea>
+        
+        <div class="control-row">
+          <span>Kecepatan Pergantian:</span>
+          <select id="select-custom-speed" class="custom-select">
+            <option value="1200">Cepat (1.2 detik)</option>
+            <option value="1800" selected>Normal (1.8 detik)</option>
+            <option value="2500">Santai (2.5 detik)</option>
+          </select>
+        </div>
+        
+        <div class="control-row">
+          <span>Format Tampilan:</span>
+          <select id="select-custom-mode" class="custom-select">
+            <option value="chunk" selected>Per Potongan Kata</option>
+            <option value="ticker">Teks Berjalan (Marquee)</option>
+          </select>
+        </div>
+        
+        <div class="custom-btn-group">
+          <button id="btn-custom-start" class="btn-primary-action" onclick="startCustomTextBroadcast()">
+            Tampilkan di Layar Case
+          </button>
+          <button id="btn-custom-stop" class="btn-secondary-action" onclick="stopCustomTextBroadcast()" style="display:none;">
+            Hentikan Teks
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History View -->
+    <div id="view-mode-history" style="display: none;">
+      <div class="card-inner-box">
+        <div class="history-header">
+          <div class="box-title">Riwayat Lagu Terakhir</div>
+          <button class="mini-btn-clear" onclick="clearPlayHistory()">Hapus Riwayat</button>
+        </div>
+        <div id="history-items-container" class="history-list"></div>
       </div>
     </div>
 
@@ -684,6 +901,12 @@
         <button class="ctrl-skip-btn" onclick="jumpSeconds(5)" title="Maju 5 Detik">
           <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05.99 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
         </button>
+      </div>
+
+      <div class="player-addons-bar">
+        <button id="btn-bass-boost" class="addon-btn" onclick="toggleBassBoost()">BASS: OFF</button>
+        <button id="btn-sleep-timer" class="addon-btn" onclick="cycleSleepTimer()">TIMER: OFF</button>
+        <button id="btn-case-style" class="addon-btn" onclick="cycleCaseStyle()">STYLE: STANDAR</button>
       </div>
     </div>
 
@@ -729,11 +952,11 @@
 
   <!-- Audio Hardware Hooks -->
   <audio id="audio-silent-keeper" loop src="quiet.wav" preload="auto"></audio>
-  <audio id="audio-main-player" preload="auto" playsinline></audio>
+  <audio id="audio-main-player" preload="auto" playsinline crossorigin="anonymous"></audio>
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=18').catch(console.error);
+      navigator.serviceWorker.register('/sw.js?v=19').catch(console.error);
     }
 
     let deferredPrompt;
@@ -779,13 +1002,32 @@
 
     let maxCharLimit = 16;
     let syncOffsetSeconds = 0.0;
+    let currentCaseStyle = 'standard';
+    let isBassBoostActive = false;
+    let audioCtx = null;
+    let sourceNode = null;
+    let bassFilter = null;
+    let sleepTimerId = null;
+    let sleepTimerMinutes = 0;
+    let customTextInterval = null;
+    let customTextFrames = [];
+    let customTextFrameIdx = 0;
 
     function switchPlayerMode(mode) {
       currentMode = mode;
       document.getElementById('nav-btn-stream').classList.toggle('active', mode === 'stream');
+      document.getElementById('nav-btn-custom').classList.toggle('active', mode === 'custom');
+      document.getElementById('nav-btn-history').classList.toggle('active', mode === 'history');
       document.getElementById('nav-btn-local').classList.toggle('active', mode === 'local');
+
       document.getElementById('view-mode-stream').style.display = mode === 'stream' ? 'flex' : 'none';
+      document.getElementById('view-mode-custom').style.display = mode === 'custom' ? 'block' : 'none';
+      document.getElementById('view-mode-history').style.display = mode === 'history' ? 'block' : 'none';
       document.getElementById('view-mode-local').style.display = mode === 'local' ? 'block' : 'none';
+
+      if (mode === 'history') {
+        renderHistoryList();
+      }
     }
 
     function alterCharLimit(diff) {
@@ -904,6 +1146,7 @@
       // Auto-collapse search dropdown so player & lyrics are immediately visible!
       hideSearchResults();
       clearLyricState();
+      saveToHistory(song);
 
       currentSongMeta = {
         id: song.id,
@@ -1057,21 +1300,29 @@
     let lastPushTime = 0;
 
     function pushBluetoothMetadata(chunk, force = false) {
-      twsDisplayText.innerText = chunk;
+      let displayTitle = chunk;
+      let displayArtist = currentSongMeta.artist ? (currentSongMeta.artist + " • TWSync") : "TWSync by gars";
+
+      if (currentCaseStyle === 'branded') {
+        displayTitle = `[ ${chunk} ]`;
+        displayArtist = "TWSync by gars";
+      }
+
+      twsDisplayText.innerText = displayTitle;
       twsDisplaySub.innerText = currentSongMeta.title || "TWSync by gars";
 
       const now = Date.now();
-      if (!force && chunk === lastPushedChunk && (now - lastPushTime < 2500)) {
+      if (!force && displayTitle === lastPushedChunk && (now - lastPushTime < 2200)) {
         return;
       }
-      lastPushedChunk = chunk;
+      lastPushedChunk = displayTitle;
       lastPushTime = now;
 
       if ('mediaSession' in navigator) {
         try {
           navigator.mediaSession.metadata = new MediaMetadata({
-            title: chunk,
-            artist: currentSongMeta.artist ? (currentSongMeta.artist + " • TWSync") : "TWSync by gars",
+            title: displayTitle,
+            artist: displayArtist,
             album: "TWSync by gars",
             artwork: STATIC_ARTWORK
           });
@@ -1296,6 +1547,222 @@
             }
           }, chunkIntervalMs);
         }
+      }
+    }
+
+    // AUDIO ADDONS: BASS BOOST
+    function initAudioContext() {
+      if (audioCtx) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        sourceNode = audioCtx.createMediaElementSource(mainPlayer);
+        bassFilter = audioCtx.createBiquadFilter();
+        bassFilter.type = 'lowshelf';
+        bassFilter.frequency.value = 160;
+        bassFilter.gain.value = 0;
+        sourceNode.connect(bassFilter);
+        bassFilter.connect(audioCtx.destination);
+      } catch (e) {
+        console.warn("AudioContext init warning:", e);
+      }
+    }
+
+    function toggleBassBoost() {
+      initAudioContext();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      isBassBoostActive = !isBassBoostActive;
+      if (bassFilter) {
+        bassFilter.gain.value = isBassBoostActive ? 9.5 : 0;
+      }
+      const btn = document.getElementById('btn-bass-boost');
+      if (btn) {
+        btn.classList.toggle('active', isBassBoostActive);
+        btn.innerText = isBassBoostActive ? "BASS: ON" : "BASS: OFF";
+      }
+    }
+
+    // AUDIO ADDONS: SLEEP TIMER
+    function cycleSleepTimer() {
+      const modes = [0, 15, 30, 60];
+      const curIdx = modes.indexOf(sleepTimerMinutes);
+      const nextMode = modes[(curIdx + 1) % modes.length];
+      setSleepTimer(nextMode);
+    }
+
+    function setSleepTimer(minutes) {
+      if (sleepTimerId) {
+        clearTimeout(sleepTimerId);
+        sleepTimerId = null;
+      }
+      sleepTimerMinutes = minutes;
+      const btn = document.getElementById('btn-sleep-timer');
+
+      if (minutes === 0) {
+        if (btn) {
+          btn.classList.remove('active');
+          btn.innerText = "TIMER: OFF";
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.classList.add('active');
+        btn.innerText = `TIMER: ${minutes}M`;
+      }
+
+      sleepTimerId = setTimeout(() => {
+        let vol = 1.0;
+        const fadeInterval = setInterval(() => {
+          vol -= 0.15;
+          if (vol <= 0.05) {
+            clearInterval(fadeInterval);
+            pausePlayback();
+            mainPlayer.volume = 1.0;
+            setSleepTimer(0);
+          } else {
+            mainPlayer.volume = Math.max(0, vol);
+          }
+        }, 200);
+      }, minutes * 60 * 1000);
+    }
+
+    // CASE STYLE PRESET
+    function cycleCaseStyle() {
+      const styles = ['standard', 'branded', 'ticker'];
+      const curIdx = styles.indexOf(currentCaseStyle);
+      currentCaseStyle = styles[(curIdx + 1) % styles.length];
+
+      const btn = document.getElementById('btn-case-style');
+      const labels = {
+        'standard': 'STYLE: STANDAR',
+        'branded': 'STYLE: BRANDED',
+        'ticker': 'STYLE: TICKER'
+      };
+      if (btn) {
+        btn.innerText = labels[currentCaseStyle];
+        btn.classList.toggle('active', currentCaseStyle !== 'standard');
+      }
+
+      // Re-push current chunk with new style format
+      if (activeChunks.length > 0) {
+        pushBluetoothMetadata(activeChunks[currentChunkIdx] || activeChunks[0], true);
+      }
+    }
+
+    // CUSTOM TEXT BROADCAST TO TWS CASE
+    function startCustomTextBroadcast() {
+      const inputEl = document.getElementById('input-custom-text');
+      const rawText = inputEl ? inputEl.value.trim() : "";
+      const textToBroadcast = rawText || "TWSync by gars";
+      const speed = parseInt(document.getElementById('select-custom-speed').value, 10) || 1800;
+      const mode = document.getElementById('select-custom-mode').value;
+
+      stopCustomTextBroadcast();
+
+      if (mode === 'ticker') {
+        const padded = "   " + textToBroadcast + "   ";
+        customTextFrames = [];
+        const windowSize = maxCharLimit;
+        for (let i = 0; i < padded.length - windowSize + 1; i += 2) {
+          customTextFrames.push(padded.slice(i, i + windowSize));
+        }
+        if (customTextFrames.length === 0) {
+          customTextFrames = [textToBroadcast.slice(0, windowSize)];
+        }
+      } else {
+        customTextFrames = sliceIntoChunks(textToBroadcast, maxCharLimit);
+      }
+
+      customTextFrameIdx = 0;
+      silentKeeper.play().catch(() => {});
+
+      const btnStart = document.getElementById('btn-custom-start');
+      const btnStop = document.getElementById('btn-custom-stop');
+      if (btnStart) btnStart.style.display = 'none';
+      if (btnStop) btnStop.style.display = 'block';
+
+      const firstFrame = customTextFrames[0];
+      pushBluetoothMetadata(firstFrame, true);
+      twsDisplayText.innerText = firstFrame;
+      twsDisplaySub.innerText = "Pesan Case Aktif";
+
+      customTextInterval = setInterval(() => {
+        customTextFrameIdx = (customTextFrameIdx + 1) % customTextFrames.length;
+        const frame = customTextFrames[customTextFrameIdx];
+        pushBluetoothMetadata(frame, true);
+        twsDisplayText.innerText = frame;
+      }, speed);
+    }
+
+    function stopCustomTextBroadcast() {
+      if (customTextInterval) {
+        clearInterval(customTextInterval);
+        customTextInterval = null;
+      }
+      silentKeeper.pause();
+      const btnStart = document.getElementById('btn-custom-start');
+      const btnStop = document.getElementById('btn-custom-stop');
+      if (btnStart) btnStart.style.display = 'block';
+      if (btnStop) btnStop.style.display = 'none';
+      pushBluetoothMetadata("♪ TWSync by gars ♪", true);
+      twsDisplayText.innerText = "♪ TWSync by gars ♪";
+      twsDisplaySub.innerText = "Bluetooth AVRCP Sync Active";
+    }
+
+    // HISTORY AND FAVORITES STORAGE
+    function saveToHistory(song) {
+      if (!song || !song.id) return;
+      try {
+        let history = JSON.parse(localStorage.getItem('tws_history') || '[]');
+        history = history.filter(item => item.id !== song.id);
+        history.unshift({
+          id: song.id,
+          title: song.clean_title || song.title,
+          channel: song.channel || song.artist || "Musik",
+          duration_str: song.duration_str || "--:--",
+          thumbnail: song.thumbnail || ""
+        });
+        if (history.length > 30) history.pop();
+        localStorage.setItem('tws_history', JSON.stringify(history));
+      } catch (e) {}
+    }
+
+    function renderHistoryList() {
+      const container = document.getElementById('history-items-container');
+      if (!container) return;
+      try {
+        const history = JSON.parse(localStorage.getItem('tws_history') || '[]');
+        if (history.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:20px; font-size:12px; color:var(--muted);">Belum ada riwayat lagu yang diputar.</div>';
+          return;
+        }
+        container.innerHTML = "";
+        history.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'history-item-row';
+          row.innerHTML = `
+            <div style="flex:1; overflow:hidden; padding-right:10px;">
+              <div class="history-item-title">${item.title}</div>
+              <div class="history-item-artist">${item.channel} • ${item.duration_str}</div>
+            </div>
+            <button class="tool-action-btn" style="font-size:11px;">Play</button>
+          `;
+          row.onclick = () => {
+            selectAndPlayOnlineTrack(item);
+            switchPlayerMode('stream');
+          };
+          container.appendChild(row);
+        });
+      } catch (e) {}
+    }
+
+    function clearPlayHistory() {
+      if (confirm("Hapus semua riwayat lagu?")) {
+        localStorage.removeItem('tws_history');
+        renderHistoryList();
       }
     }
 
