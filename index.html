@@ -733,7 +733,7 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=16').catch(console.error);
+      navigator.serviceWorker.register('/sw.js?v=17').catch(console.error);
     }
 
     let deferredPrompt;
@@ -1034,6 +1034,20 @@
       });
     }
 
+    function updateMediaPositionState() {
+      if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+        if (mainPlayer.duration && !isNaN(mainPlayer.duration) && isFinite(mainPlayer.duration)) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: Math.max(0, mainPlayer.duration),
+              playbackRate: mainPlayer.paused ? 0 : (mainPlayer.playbackRate || 1),
+              position: Math.min(Math.max(0, mainPlayer.currentTime), mainPlayer.duration)
+            });
+          } catch (e) {}
+        }
+      }
+    }
+
     function pushBluetoothMetadata(chunk) {
       twsDisplayText.innerText = chunk;
       twsDisplaySub.innerText = currentSongMeta.title || "TWSync by gars";
@@ -1053,54 +1067,64 @@
           artwork: artList
         });
         navigator.mediaSession.playbackState = mainPlayer.paused ? "paused" : "playing";
+        updateMediaPositionState();
+      }
+    }
 
-        if ('setPositionState' in navigator.mediaSession && mainPlayer.duration && !isNaN(mainPlayer.duration)) {
-          try {
-            navigator.mediaSession.setPositionState({
-              duration: mainPlayer.duration,
-              playbackRate: mainPlayer.playbackRate || 1,
-              position: Math.min(mainPlayer.currentTime, mainPlayer.duration)
-            });
-          } catch (e) {}
+    async function resumePlayback() {
+      if (!mainPlayer.src) return;
+      try {
+        await mainPlayer.play();
+        updatePlayStateUI(true);
+        startLyricSyncLoop();
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+          updateMediaPositionState();
         }
+      } catch (err) {
+        console.warn("Resume playback error:", err);
+      }
+    }
+
+    function pausePlayback() {
+      mainPlayer.pause();
+      updatePlayStateUI(false);
+      stopLyricSyncLoop();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+        updateMediaPositionState();
+      }
+    }
+
+    function togglePlayPause() {
+      if (mainPlayer.paused) {
+        resumePlayback();
+      } else {
+        pausePlayback();
       }
     }
 
     function setupMediaSessionHandlers() {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => {
-          mainPlayer.play();
-          updatePlayStateUI(true);
+          resumePlayback();
         });
         navigator.mediaSession.setActionHandler('pause', () => {
-          mainPlayer.pause();
-          updatePlayStateUI(false);
+          pausePlayback();
         });
         navigator.mediaSession.setActionHandler('stop', () => {
-          mainPlayer.pause();
-          updatePlayStateUI(false);
+          pausePlayback();
         });
         navigator.mediaSession.setActionHandler('seekto', (details) => {
           if (details.seekTime !== undefined && details.seekTime !== null) {
             mainPlayer.currentTime = details.seekTime;
+            updateMediaPositionState();
           }
         });
         navigator.mediaSession.setActionHandler('seekforward', () => jumpSeconds(5));
         navigator.mediaSession.setActionHandler('seekbackward', () => jumpSeconds(-5));
         navigator.mediaSession.setActionHandler('previoustrack', () => jumpSeconds(-10));
         navigator.mediaSession.setActionHandler('nexttrack', () => jumpSeconds(10));
-      }
-    }
-
-    function togglePlayPause() {
-      if (mainPlayer.paused) {
-        mainPlayer.play();
-        updatePlayStateUI(true);
-        startLyricSyncLoop();
-      } else {
-        mainPlayer.pause();
-        updatePlayStateUI(false);
-        stopLyricSyncLoop();
       }
     }
 
@@ -1111,6 +1135,7 @@
 
     function jumpSeconds(sec) {
       mainPlayer.currentTime = Math.max(0, Math.min(mainPlayer.duration || 0, mainPlayer.currentTime + sec));
+      updateMediaPositionState();
     }
 
     function seekPlayback(e) {
@@ -1118,6 +1143,7 @@
       const pct = (e.clientX - rect.left) / rect.width;
       if (mainPlayer.duration) {
         mainPlayer.currentTime = pct * mainPlayer.duration;
+        updateMediaPositionState();
       }
     }
 
@@ -1134,14 +1160,33 @@
         uiTimeDur.innerText = fmtTime(mainPlayer.duration);
         uiSeekFill.style.width = `${(mainPlayer.currentTime / mainPlayer.duration) * 100}%`;
       }
-      checkLyricTiming();
-    };
-        uiSeekFill.style.width = `${(mainPlayer.currentTime / mainPlayer.duration) * 100}%`;
+      if (!mainPlayer.paused) {
+        checkLyricTiming();
       }
     };
 
-    mainPlayer.onplay = () => updatePlayStateUI(true);
-    mainPlayer.onpause = () => updatePlayStateUI(false);
+    mainPlayer.onplay = () => {
+      updatePlayStateUI(true);
+      startLyricSyncLoop();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+        updateMediaPositionState();
+      }
+    };
+
+    mainPlayer.onpause = () => {
+      updatePlayStateUI(false);
+      stopLyricSyncLoop();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+        updateMediaPositionState();
+      }
+    };
+
+    mainPlayer.onended = () => {
+      pausePlayback();
+      pushBluetoothMetadata("♪ Selesai • TWSync ♪");
+    };
 
     function startLyricSyncLoop() {
       if (syncCheckTimer) clearInterval(syncCheckTimer);
@@ -1149,12 +1194,18 @@
     }
 
     function stopLyricSyncLoop() {
-      if (syncCheckTimer) clearInterval(syncCheckTimer);
-      clearInterval(chunkCycleInterval);
+      if (syncCheckTimer) {
+        clearInterval(syncCheckTimer);
+        syncCheckTimer = null;
+      }
+      if (chunkCycleInterval) {
+        clearInterval(chunkCycleInterval);
+        chunkCycleInterval = null;
+      }
     }
 
     function checkLyricTiming() {
-      if (parsedLyricsList.length === 0) return;
+      if (mainPlayer.paused || parsedLyricsList.length === 0) return;
 
       const cur = mainPlayer.currentTime + syncOffsetSeconds;
 
@@ -1212,6 +1263,9 @@
     document.getElementById('input-search').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') triggerSearch();
     });
+
+    // Boot Bluetooth MediaSession action hooks immediately
+    setupMediaSessionHandlers();
   </script>
 </body>
 </html>
